@@ -14,11 +14,13 @@ file, embcode = get_file_embcode(path_data, 0)
 
 IMGS, xyres, zres = read_img_with_resolution(path_data+file, channel=1)
 IMGS_flaten1 = IMGS.flatten()
-IMGS_flaten1 = IMGS_flaten1[IMGS_flaten1 > 5]
+IMGS_flaten1 = IMGS_flaten1[IMGS_flaten1]
 
 IMGS, xyres, zres = read_img_with_resolution(path_data+file, channel=0)
 IMGS_flaten0 = IMGS.flatten()
-IMGS_flaten0 = IMGS_flaten0[IMGS_flaten0 > 5]
+IMGS_flaten0 = IMGS_flaten0[IMGS_flaten0]
+
+
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
 ax.hist(IMGS_flaten0, bins=100)
