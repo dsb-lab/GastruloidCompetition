@@ -89,7 +89,7 @@ CT_Casp3 = CellTracking(
 
 ### RUN SEGMENTATION AND TRACKING ###
 CT_Casp3.run()
-CT_Casp3.plot_tracking(plot_args, stacks_for_plotting=IMGS_Casp3)
+# CT_Casp3.plot_tracking(plot_args, stacks_for_plotting=IMGS_Casp3)
 
 # ### PLOTTING ###
 import numpy as np
@@ -123,7 +123,7 @@ CT_A12 = CellTracking(
 
 ### RUN SEGMENTATION AND TRACKING ###
 CT_A12.run()
-CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
+# CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
 ### CREATE CELLTRACKING CLASS ###
 CT_F3 = CellTracking(
@@ -142,7 +142,7 @@ CT_F3 = CellTracking(
 
 ### RUN SEGMENTATION AND TRACKING ###
 CT_F3.run()
-CT_F3.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
+# CT_F3.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
 from embdevtools.celltrack.core.tools.cell_tools import remove_small_cells
 
@@ -151,22 +151,11 @@ area_th = np.pi * (diam_th/2)**2
 remove_small_cells(CT_A12.jitcells, area_th, CT_A12._del_cell, CT_A12.update_labels)
 remove_small_cells(CT_F3.jitcells, area_th, CT_F3._del_cell, CT_F3.update_labels)
 
-
-from libpysal import weights, examples
-from libpysal.cg import voronoi_frames
-
-import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 
+cells = [cell for sublist in [CT_A12.jitcells, CT_F3.jitcells] for cell in sublist]
+fates = [s for s, sublist in enumerate([CT_A12.jitcells, CT_F3.jitcells]) for cell in sublist]
 
-# In order for networkx to plot the nodes of our graph correctly, we
-# need to construct the array of coordinates for each point in our dataset.
-# To get this as a numpy array, we extract the x and y coordinates from the
-# geometry column.
-
-cells = [cell for sublist in [CT_A12.jitcells, CT_F3.jitcells, CT_Casp3.jitcells] for cell in sublist]
-fates = [s for s, sublist in enumerate([CT_A12.jitcells, CT_F3.jitcells, CT_Casp3.jitcells]) for cell in sublist]
 centers = []
 labs = []
 
@@ -177,9 +166,33 @@ for c, cell in enumerate(cells):
     else:
         labs.append(cell.label)
 
+max_pre = np.max(labs)
+for cell in CT_Casp3.jitcells:
+    cells.append(cell)
+    casp3 = []
+    a12 = []
+    f3 = []
+    for zid, z in enumerate(cell.zs[0]):
+        mask = cell.masks[0][zid]
+        casp3.append(np.mean(IMGS_Casp3[0][z][mask[:,1], mask[:,0]]))
+        a12.append(np.mean(IMGS_A12[0][z][mask[:,1], mask[:,0]]))
+        f3.append(np.mean(IMGS_F3[0][z][mask[:,1], mask[:,0]]))
+
+    # idx = np.argmax(casp3)
+    zz = np.int64(cell.centers[0][0])
+    idx = cell.zs[0].index(zz)
+    if f3[idx] > a12[idx]:
+        fates.append(2)
+    else:
+        fates.append(3)
+    
+    centers.append(cell.centers[0]*[zres, xyres, xyres])
+    labs.append(cell.label + max_pre + 1)
+
 
 centers = np.array(centers)
 labs = np.array(labs)
+
 from scipy.spatial import Delaunay
 
 tri = Delaunay(centers)
@@ -224,3 +237,17 @@ for p, neigh_p in enumerate(true_neighs):
     neighs_labs.append(lbs)
     neighs_fates.append(fts)
 
+
+neighs_n = [len(neighs_p) for neighs_p in true_neighs]
+neighs_n_A12 = [n for i,n in enumerate(neighs_n) if fates[i] == 0]
+neighs_n_F3 = [n for i,n in enumerate(neighs_n) if fates[i] == 1]
+neighs_n_Casp3 = [n for i,n in enumerate(neighs_n) if fates[i] > 1]
+
+y = [np.mean(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
+yerr = [np.std(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
+import matplotlib.pyplot as plt
+plt.bar([1,2,3], y, tick_label=["A12", "F3", "Casp3"], color=["magenta", "green", "yellow"], yerr=yerr, capsize=6)
+plt.ylabel("# of neighbors")
+plt.show()
+
+# For the caspase cells, check fate of neighbors as a percentage
