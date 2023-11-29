@@ -13,7 +13,7 @@ except:
 ### GET FULL FILE NAME AND FILE CODE ###
 files = get_file_names(path_data)
 
-file, embcode = get_file_embcode(path_data, 2, returnfiles=False)
+file, embcode = get_file_embcode(path_data, "_2.tif",allow_file_fragment=True, returnfiles=False)
 
 
 ### LOAD HYPERSTACKS ###
@@ -72,6 +72,14 @@ error_correction_args = {
 }
 
 
+# ### PLOTTING ###
+import numpy as np
+_IMGS_A12 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_A12[0]]]).astype('uint8')
+_IMGS_F3 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_F3[0]]]).astype('uint8')
+_IMGS_Casp3 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_Casp3[0]]]).astype('uint8')
+
+IMGS_plot = construct_RGB(R=_IMGS_A12, G=_IMGS_F3, B=_IMGS_Casp3)
+
 ### CREATE CELLTRACKING CLASS ###
 CT_Casp3 = CellTracking(
     IMGS_Casp3, 
@@ -86,18 +94,10 @@ CT_Casp3 = CellTracking(
     plot_args = plot_args,
 )
 
-
 ### RUN SEGMENTATION AND TRACKING ###
 CT_Casp3.run()
-# CT_Casp3.plot_tracking(plot_args, stacks_for_plotting=IMGS_Casp3)
+CT_Casp3.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
-# ### PLOTTING ###
-import numpy as np
-_IMGS_A12 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_A12[0]]]).astype('uint8')
-_IMGS_F3 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_F3[0]]]).astype('uint8')
-_IMGS_Casp3 = np.asarray([[255*(IMG/IMG.max()) for IMG in IMGS_Casp3[0]]]).astype('uint8')
-
-IMGS_plot = construct_RGB(R=_IMGS_A12, G=_IMGS_F3, B=_IMGS_Casp3)
 
 
 segmentation_args={
@@ -123,7 +123,7 @@ CT_A12 = CellTracking(
 
 ### RUN SEGMENTATION AND TRACKING ###
 CT_A12.run()
-# CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
+CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
 ### CREATE CELLTRACKING CLASS ###
 CT_F3 = CellTracking(
@@ -142,7 +142,7 @@ CT_F3 = CellTracking(
 
 ### RUN SEGMENTATION AND TRACKING ###
 CT_F3.run()
-# CT_F3.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
+CT_F3.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
 from embdevtools.celltrack.core.tools.cell_tools import remove_small_cells
 
@@ -215,7 +215,7 @@ for p, point in enumerate(centers):
     neighs.append(neighs_p)
 
 true_neighs = []
-dist_th = 30 #microns
+dist_th = 20 #microns
 dist_th_near = 5
 for p, neigh_p in enumerate(neighs):
     true_neigh_p = []
@@ -243,6 +243,7 @@ neighs_n_A12 = [n for i,n in enumerate(neighs_n) if fates[i] == 0]
 neighs_n_F3 = [n for i,n in enumerate(neighs_n) if fates[i] == 1]
 neighs_n_Casp3 = [n for i,n in enumerate(neighs_n) if fates[i] > 1]
 
+
 y = [np.mean(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
 yerr = [np.std(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
 import matplotlib.pyplot as plt
@@ -251,3 +252,97 @@ plt.ylabel("# of neighbors")
 plt.show()
 
 # For the caspase cells, check fate of neighbors as a percentage
+
+first_id_casp3 = len(centers) - len(CT_Casp3.jitcells)
+
+neighs_fates_A12 = [n for i,n in enumerate(neighs_fates) if fates[i] == 0]
+neighs_fates_F3 = [n for i,n in enumerate(neighs_fates) if fates[i] == 1]
+neighs_fates_Casp3_F3 = [n for i,n in enumerate(neighs_fates) if fates[i] == 2]
+neighs_fates_Casp3_A12 = [n for i,n in enumerate(neighs_fates) if fates[i] == 3]
+
+neighs_fates_A12_sum = np.zeros(2)
+neighs_fates_F3_sum = np.zeros(2)
+neighs_fates_Casp3_A12_sum = np.zeros(2)
+neighs_fates_Casp3_F3_sum = np.zeros(2)
+
+for n_fates in neighs_fates_A12:
+    for f in n_fates:
+        if f in [0]:
+            neighs_fates_A12_sum[0] += 1
+        elif f in [1]:
+            neighs_fates_A12_sum[1] += 1
+
+for n_fates in neighs_fates_F3:
+    for f in n_fates:
+        if f in [0]:
+            neighs_fates_F3_sum[0] += 1
+        elif f in [1]:
+            neighs_fates_F3_sum[1] += 1
+
+for n_fates in neighs_fates_Casp3_F3:
+    for f in n_fates:
+        if f in [0]:
+            neighs_fates_Casp3_F3_sum[0] += 1
+        elif f in [1]:
+            neighs_fates_Casp3_F3_sum[1] += 1
+
+for n_fates in neighs_fates_Casp3_A12:
+    for f in n_fates:
+        if f in [0]:
+            neighs_fates_Casp3_A12_sum[0] += 1
+        elif f in [1]:
+            neighs_fates_Casp3_A12_sum[1] += 1
+
+
+neighs_fates_A12_sum /= np.sum(neighs_fates_A12_sum)
+neighs_fates_F3_sum /= np.sum(neighs_fates_F3_sum)
+neighs_fates_Casp3_F3_sum /= np.sum(neighs_fates_Casp3_F3_sum)
+neighs_fates_Casp3_A12_sum /= np.sum(neighs_fates_Casp3_A12_sum)
+
+import matplotlib.pyplot as plt
+bot = [neighs_fates_A12_sum[0], neighs_fates_Casp3_A12_sum[0], neighs_fates_F3_sum[0], neighs_fates_Casp3_F3_sum[0]]
+plt.bar([1,2,3,4], bot, color="magenta")
+top = [neighs_fates_A12_sum[1], neighs_fates_Casp3_A12_sum[1], neighs_fates_F3_sum[1], neighs_fates_Casp3_F3_sum[1]]
+plt.bar([1,2,3,4], top, bottom =bot, tick_label=["A12", "Casp3 - A12", "F3", "Casp3 - F3"], color="green")
+plt.ylabel("percentage of neighbors")
+plt.show()
+
+print("A12", neighs_fates_A12_sum)
+print("Casp3 - A12", neighs_fates_Casp3_A12_sum)
+print("F3", neighs_fates_F3_sum)
+print("Casp3 - F3", neighs_fates_Casp3_F3_sum)
+
+neighs_fates_F3_sum[1]
+100*(1 - (neighs_fates_Casp3_F3_sum[1] / neighs_fates_F3_sum[1]))
+
+
+CASP3 = []
+A12 = []
+F3 = []
+na12 = 0
+nf3 = 0
+labs = []
+for cell in CT_Casp3.jitcells:
+    casp3 = []
+    a12 = []
+    f3 = []
+    for zid, z in enumerate(cell.zs[0]):
+        mask = cell.masks[0][zid]
+        casp3.append(np.mean(_IMGS_Casp3[0][z][mask[:,1], mask[:,0]]))
+        a12.append(np.mean(_IMGS_A12[0][z][mask[:,1], mask[:,0]]))
+        f3.append(np.mean(_IMGS_F3[0][z][mask[:,1], mask[:,0]]))
+
+    # idx = np.argmax(casp3)
+    zz = np.int64(cell.centers[0][0])
+    idx = cell.zs[0].index(zz)
+    if f3[idx] > a12[idx]:
+        nf3 +=1
+    else:
+        na12 +=1
+        labs.append(cell.label)
+    CASP3.append(casp3[idx])
+    A12.append(a12[idx])
+    F3.append(f3[idx])
+
+print("A12", na12 / len(CT_A12.jitcells))
+print("F3", nf3 / len(CT_F3.jitcells))
