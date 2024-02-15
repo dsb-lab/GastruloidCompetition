@@ -1,39 +1,25 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_embcode, read_img_with_resolution, CellTracking, load_CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
+from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/WT/'
-path_save='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48h/WT/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48h/WT/'
 
 try: 
-    files = get_file_names(path_save)
+    files = get_file_names(path_save_dir)
 except: 
     import os
-    os.mkdir(path_save)
+    os.mkdir(path_save_dir)
 ### GET FULL FILE NAME AND FILE CODE ###
-files = get_file_names(path_data)
+files = get_file_names(path_data_dir)
 
 CENTERS = []
 FATES = []
 LABS = []
 
 for f, file in enumerate(files[:1]):
-    file, embcode = get_file_embcode(path_data, file, allow_file_fragment=False, returnfiles=False)
-    print(file)
-
-    ### LOAD HYPERSTACKS ###
-    channel = 0
-    IMGS_A12, xyres, zres = read_img_with_resolution(path_data+file, stack=True, channel=channel)
-    ### LOAD HYPERSTACKS ###
-    channel = 1
-    IMGS_F3, xyres, zres = read_img_with_resolution(path_data+file, stack=True, channel=channel)
-    ### LOAD HYPERSTACKS ###
-    channel = 2
-    IMGS_Casp3, xyres, zres = read_img_with_resolution(path_data+file, stack=True, channel=channel)
-    ### LOAD HYPERSTACKS ###
-    channel = 4
-    IMGS_DAPI, xyres, zres = read_img_with_resolution(path_data+file, stack=True, channel=channel)
-
+    path_data = path_data_dir+file
+    file, embcode = get_file_name(path_data, file, allow_file_fragment=False, returnfiles=False)
 
     ### LOAD STARDIST MODEL ###
     from stardist.models import StarDist2D
@@ -110,24 +96,24 @@ for f, file in enumerate(files[:1]):
         'blur': None, 
     }
 
-    # ### CREATE CELLTRACKING CLASS ###
-    # CT_A12 = CellTracking(
-    #     IMGS_A12, 
-    #     path_save, 
-    #     embcode+"ch_%d" %(channel+1), 
-    #     xyresolution=xyres, 
-    #     zresolution=zres,
-    #     segmentation_args=segmentation_args,
-    #     concatenation3D_args=concatenation3D_args,
-    #     tracking_args = tracking_args, 
-    #     error_correction_args=error_correction_args,    
-    #     plot_args = plot_args,
-    # )
+    ### CREATE CELLTRACKING CLASS ###
+    CT_A12 = CellTracking(
+        IMGS_A12, 
+        path_save, 
+        embcode+"ch_%d" %(channel+1), 
+        xyresolution=xyres, 
+        zresolution=zres,
+        segmentation_args=segmentation_args,
+        concatenation3D_args=concatenation3D_args,
+        tracking_args = tracking_args, 
+        error_correction_args=error_correction_args,    
+        plot_args = plot_args,
+    )
 
 
-    # ### RUN SEGMENTATION AND TRACKING ###
-    # CT_A12.run()
-    # # CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
+    ### RUN SEGMENTATION AND TRACKING ###
+    CT_A12.run()
+    # CT_A12.plot_tracking(plot_args, stacks_for_plotting=IMGS_plot)
 
     ### CREATE CELLTRACKING CLASS ###
     CT_F3 = CellTracking(
