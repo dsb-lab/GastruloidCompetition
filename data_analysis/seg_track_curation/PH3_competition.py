@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/home/pablo/Desktop/PhD/projects/embdevtools/celltrack/src/celltrack')
 
-from celltrack import CellTracking, get_file_embcode, read_img_with_resolution, load_cells
+from embdevtools import CellTracking, get_file_embcode, read_img_with_resolution, load_cells
 
 
 import os

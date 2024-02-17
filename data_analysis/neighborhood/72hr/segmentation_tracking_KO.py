@@ -1,11 +1,9 @@
 ### LOAD PACKAGE ###
 from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
-from embdevtools import remove_small_cells, plot_cell_sizes
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'
-path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/"
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/72hr/KO/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/72hr/KO/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -24,19 +22,38 @@ channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
     channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
 
-total_cells = []
-true_cells  = []
-
-total_cells.append([])
-true_cells.append([])
-bws = [30, 30, 30]
-bins = [50, 25, 50]
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
     path_save = path_save_dir+embcode
+    try: 
+        files = get_file_names(path_save)
+    except: 
+        import os
+        os.mkdir(path_save)
+
+    ### LOAD STARDIST MODEL ###
+    from stardist.models import StarDist2D
+    model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
     ### DEFINE ARGUMENTS ###
+    segmentation_args={
+        'method': 'stardist2D', 
+        'model': model, 
+        'blur': None, 
+        # 'n_tiles': (2,2),
+    }
+
+    concatenation3D_args = {
+        'distance_th_z': 3.0, # microns
+        'relative_overlap':False, 
+        'use_full_matrix_to_compute_overlap':True, 
+        'z_neighborhood':2, 
+        'overlap_gradient_th':0.3, 
+        'min_cell_planes': 2,
+    }
+    
+
     error_correction_args = {
         'backup_steps': 10,
         'line_builder_mode': 'points',
@@ -64,29 +81,17 @@ for f, file in enumerate(files):
     CT_F3 = CellTracking(
         path_data,
         path_save,
+        segmentation_args=segmentation_args,
+        concatenation3D_args=concatenation3D_args,
         error_correction_args=error_correction_args,
         plot_args=plot_args,
         batch_args=batch_args,
         channels=chans
     )
 
-    CT_F3.load()
-    total_cells[-1].append(len(CT_F3.jitcells))
-    plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
-    remove_small_cells(CT_F3, 57)
-    CT_F3.update_labels()
-    true_cells[-1].append(len(CT_F3.jitcells))
-
-
-total_cells.append([])
-true_cells.append([])
-bws = [30, 25, 20]
-bins = [50, 50, 50]
-for f, file in enumerate(files):
-    path_data = path_data_dir+file
-    file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-    path_save = path_save_dir+embcode
-
+    CT_F3.run()
+    # CT_F3.plot_tracking()
+    
     ch = channel_names.index("A12")
     batch_args = {
         'name_format':"ch"+str(ch)+"_{}",
@@ -109,30 +114,17 @@ for f, file in enumerate(files):
     CT_A12 = CellTracking(
         path_data,
         path_save,
+        segmentation_args=segmentation_args,
+        concatenation3D_args=concatenation3D_args,
         error_correction_args=error_correction_args,
         plot_args=plot_args,
         batch_args=batch_args,
         channels=chans
     )
 
-    CT_A12.load()
-    total_cells[-1].append(len(CT_A12.jitcells))
-    plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
-    remove_small_cells(CT_A12, 57)
-    CT_A12.update_labels()
-    true_cells[-1].append(len(CT_A12.jitcells))
-
-
-
-total_cells.append([])
-true_cells.append([])
-bws = [60, 60, 60]
-bins = [50, 50, 50]
-for f, file in enumerate(files):
-    path_data = path_data_dir+file
-    file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-    path_save = path_save_dir+embcode
-
+    CT_A12.run()
+    # CT_A12.plot_tracking()
+    
     ch = channel_names.index("Casp3")
 
     batch_args = {
@@ -153,21 +145,23 @@ for f, file in enumerate(files):
         if _ch not in chans:
             chans.append(_ch)
 
+    ### DEFINE ARGUMENTS ###
+    segmentation_args={
+        'method': 'stardist2D', 
+        'model': model, 
+        'blur': [5,1], 
+        # 'n_tiles': (2,2),
+    }
     CT_Casp3 = CellTracking(
         path_data,
         path_save,
+        segmentation_args=segmentation_args,
+        concatenation3D_args=concatenation3D_args,
         error_correction_args=error_correction_args,
         plot_args=plot_args,
         batch_args=batch_args,
         channels=chans
     )
 
-    CT_Casp3.load()
-    # total_cells[-1].append(len(CT_Casp3.jitcells))
-    plot_cell_sizes(CT_Casp3, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
-    # remove_small_cells(CT_Casp3, 57)
-    # CT_Casp3.update_labels()
-
-import numpy as np
-print(np.array(total_cells[:2]) - np.array(true_cells[:2]))
-print(true_cells)
+    CT_Casp3.run()
+    # CT_Casp3.plot_tracking()
