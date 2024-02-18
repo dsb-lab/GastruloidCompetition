@@ -2,8 +2,8 @@
 from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/WT/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/96hr/WT/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -41,7 +41,7 @@ for f, file in enumerate(files):
         'method': 'stardist2D', 
         'model': model, 
         'blur': None, 
-        # 'n_tiles': (2,2),
+        'min_outline_length':100,
     }
 
     concatenation3D_args = {
@@ -71,7 +71,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -89,8 +90,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.run()
-    # CT_F3.plot_tracking()
+    CT_F3.load()
+    CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
     batch_args = {
@@ -103,7 +104,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
 
     chans = [ch]
@@ -122,8 +124,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.run()
-    # CT_A12.plot_tracking()
+    CT_A12.load()
+    CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
 
@@ -137,7 +139,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -163,5 +166,5 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_Casp3.run()
-    # CT_Casp3.plot_tracking()
+    CT_Casp3.load()
+    CT_Casp3.plot_tracking()
