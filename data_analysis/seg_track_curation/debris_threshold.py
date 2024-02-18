@@ -3,8 +3,8 @@ from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_
 from embdevtools import remove_small_cells, plot_cell_sizes
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/WT/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/96hr/WT/'
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/"
 
 try: 
@@ -22,15 +22,15 @@ LABS = []
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
-    channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
+    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
 total_cells = []
 true_cells  = []
 
 total_cells.append([])
 true_cells.append([])
-bws = [30, 30, 30]
-bins = [50, 25, 50]
+bws = [35, 30, 30, 30, 30]
+bins = [40, 25, 30, 30, 30]
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
@@ -72,7 +72,7 @@ for f, file in enumerate(files):
 
     CT_F3.load()
     total_cells[-1].append(len(CT_F3.jitcells))
-    plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
+    plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], path_save="{}/debris/96hr/96hr_WT_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
     remove_small_cells(CT_F3, 57)
     CT_F3.update_labels()
     true_cells[-1].append(len(CT_F3.jitcells))
@@ -80,8 +80,8 @@ for f, file in enumerate(files):
 
 total_cells.append([])
 true_cells.append([])
-bws = [30, 25, 20]
-bins = [50, 50, 50]
+bws = [30, 25, 30, 30, 20]
+bins = [50, 50, 50, 50, 50]
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
@@ -117,17 +117,16 @@ for f, file in enumerate(files):
 
     CT_A12.load()
     total_cells[-1].append(len(CT_A12.jitcells))
-    plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
+    plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], path_save="{}/debris/96hr/96hr_WT_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
     remove_small_cells(CT_A12, 57)
     CT_A12.update_labels()
     true_cells[-1].append(len(CT_A12.jitcells))
 
 
-
 total_cells.append([])
 true_cells.append([])
-bws = [60, 60, 60]
-bins = [50, 50, 50]
+bws = [50, 55, 45, 50, 50]
+bins = [50, 50, 50, 50, 50]
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
@@ -164,7 +163,7 @@ for f, file in enumerate(files):
 
     CT_Casp3.load()
     # total_cells[-1].append(len(CT_Casp3.jitcells))
-    plot_cell_sizes(CT_Casp3, bw=bws[f], bins=bins[f], path_save="{}/debris/48hr/48hr_KO_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
+    plot_cell_sizes(CT_Casp3, bw=bws[f], bins=bins[f], path_save="{}/debris/96hr/96hr_WT_{}_{}".format(path_figures, channel_names[ch],f), xlim=(0,400))
     # remove_small_cells(CT_Casp3, 57)
     # CT_Casp3.update_labels()
 

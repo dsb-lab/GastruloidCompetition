@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
+from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, tif_reader_5D
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/KO/'
@@ -20,7 +20,7 @@ LABS = []
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
-    channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
+    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file
@@ -40,7 +40,7 @@ for f, file in enumerate(files):
     segmentation_args={
         'method': 'stardist2D', 
         'model': model, 
-        'blur': None, 
+        'blur': [0.1,1], 
         # 'n_tiles': (2,2),
     }
 
