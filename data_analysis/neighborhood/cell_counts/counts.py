@@ -26,7 +26,6 @@ for TIME in TIMES:
         os.mkdir(path_figures_time)
             
     for COND in CONDS:
-        
         path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
         path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
 
@@ -187,9 +186,9 @@ for TIME in TIMES:
 
             CT_Casp3.load()
                 
-            # CT_F3.plot_tracking()
-            # CT_A12.plot_tracking()
-            # CT_Casp3.plot_tracking()
+            CT_F3.plot_tracking()
+            CT_A12.plot_tracking()
+            CT_Casp3.plot_tracking()
             
             import numpy as np
 
@@ -284,9 +283,11 @@ for TIME in TIMES:
                     if not inhull_Delaunay(hulls[zid], center[1:]):
                         cells_to_remove.append(cell.label)
                 
-            # for lab in cells_to_remove:
-            #     CT_F3._del_cell(lab)
+            for lab in cells_to_remove:
+                CT_F3._del_cell(lab)
             
+            CT_F3.update_labels()
+
             cells_to_remove = []
             for c, cell in enumerate(CT_A12.jitcells):
                 center = cell.centers[0]
@@ -298,9 +299,11 @@ for TIME in TIMES:
                     if not inhull_Delaunay(hulls[zid], center[1:]):
                         cells_to_remove.append(cell.label)
                 
-            # for lab in cells_to_remove:
-            #     CT_A12._del_cell(lab)
+            for lab in cells_to_remove:
+                CT_A12._del_cell(lab)
             
+            CT_A12.update_labels()
+
             cells_to_remove = []
             for c, cell in enumerate(CT_Casp3.jitcells):
                 center = cell.centers[0]
@@ -315,6 +318,13 @@ for TIME in TIMES:
             for lab in cells_to_remove:
                 CT_Casp3._del_cell(lab)
             
+            CT_Casp3.update_labels()
+            
+
+            CT_F3.plot_tracking()
+            CT_A12.plot_tracking()
+            CT_Casp3.plot_tracking()
+
             ## Now contract the shape as much as we want. 
             F3_dist = np.array(F3_dist)
             A12_dist = np.array(A12_dist)

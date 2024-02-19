@@ -8,6 +8,11 @@ TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 for TIME in TIMES:
     for COND in CONDS:
+        if TIME != "96hr": 
+            continue
+        if COND != "KO":
+            continue
+
         path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
         path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
 
@@ -251,17 +256,17 @@ for TIME in TIMES:
             tha12 = np.mean(a12_casp3)+1.5*np.std(a12_casp3)
             
             
-            # fig, ax = plt.subplots()
-            # ax.set_title("{} {}".format(COND, TIME))
-            # y1, x, _ = ax.hist(f3_casp3, color=[0.9,0,0.9,0.5], bins=40, density=True, label="F3")
-            # y2, x, _ = ax.hist(a12_casp3, color=[0,0.8,0,0.5], bins=40, density=True, label="A12")
-            # y3, x, _ = ax.hist(casp3_casp3, color=[0.9,0.9,0.0,0.5], bins=40, density=True, label="Casp3")
-            # ax.vlines([thf3, tha12], np.min([y1,y2,y3]), np.max([y1,y2,y3]))
-            # ax.set_ylabel("density")
-            # ax.set_xlim(0,70)
-            # ax.set_xlabel("Casp3")
-            # ax.legend()
-            # plt.show()
+            fig, ax = plt.subplots()
+            ax.set_title("{} {}".format(COND, TIME))
+            y1, x, _ = ax.hist(f3_casp3, color=[0.9,0,0.9,0.5], bins=40, density=True, label="F3")
+            y2, x, _ = ax.hist(a12_casp3, color=[0,0.8,0,0.5], bins=40, density=True, label="A12")
+            y3, x, _ = ax.hist(casp3_casp3, color=[0.9,0.9,0.0,0.5], bins=40, density=True, label="Casp3")
+            ax.vlines([thf3, tha12], np.min([y1,y2,y3]), np.max([y1,y2,y3]))
+            ax.set_ylabel("density")
+            ax.set_xlim(0,70)
+            ax.set_xlabel("Casp3")
+            ax.legend()
+            plt.show()
                 
             th_casp3 = np.mean([thf3, tha12])
             
@@ -279,9 +284,9 @@ for TIME in TIMES:
                 if casp3_val < th_casp3:
                     cells_to_remove.append(cell.label)
             
-            for lab in reversed(cells_to_remove):
-                CT_Casp3._del_cell(lab)
+            # for lab in reversed(cells_to_remove):
+            #     CT_Casp3._del_cell(lab)
             
-            CT_Casp3.update_labels()
+            # CT_Casp3.update_labels()
             
 

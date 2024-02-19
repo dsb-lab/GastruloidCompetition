@@ -20,7 +20,7 @@ LABS = []
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
-    channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
+    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file
@@ -71,7 +71,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -89,8 +90,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.run()
-    # CT_F3.plot_tracking()
+    CT_F3.load()
+    CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
     batch_args = {
@@ -103,7 +104,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch, 0, 3],
+        'min_outline_length':75,
     }
 
     chans = [ch]
@@ -122,8 +124,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.run()
-    # CT_A12.plot_tracking()
+    CT_A12.load()
+    CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
 
@@ -136,8 +138,9 @@ for f, file in enumerate(files):
         'plot_overlap': 1,
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
-        'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'plot_centers':[True, True], # [Plot center as a dot, plot label on 3D center]
+        'channels':[1,0,ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -163,5 +166,6 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_Casp3.run()
-    # CT_Casp3.plot_tracking()
+    CT_Casp3.load()
+    CT_Casp3.plot_tracking()
+    # save_4Dstack(path_save, "masks", CT_Casp3._masks_stack, CT_Casp3.metadata["XYresolution"],  CT_Casp3.metadata["Zresolution"])

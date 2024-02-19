@@ -12,6 +12,10 @@ TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 for TIME in TIMES:
     for COND in CONDS:
+        if TIME != "96hr": 
+            continue
+        if COND != "KO":
+            continue
 
         path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
         path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
@@ -180,8 +184,8 @@ for TIME in TIMES:
 
             CT_Casp3.load()
                 
-            # CT_F3.plot_tracking()
-            # CT_A12.plot_tracking()
+            CT_F3.plot_tracking()
+            CT_A12.plot_tracking()
             CT_Casp3.plot_tracking()
             
             
