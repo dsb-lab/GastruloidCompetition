@@ -186,9 +186,9 @@ for TIME in TIMES:
 
             CT_Casp3.load()
                 
-            CT_F3.plot_tracking()
-            CT_A12.plot_tracking()
-            CT_Casp3.plot_tracking()
+            # CT_F3.plot_tracking()
+            # CT_A12.plot_tracking()
+            # CT_Casp3.plot_tracking()
             
             import numpy as np
 
@@ -256,11 +256,11 @@ for TIME in TIMES:
             area = np.mean(areas)
             dim = 2*np.sqrt(area/np.pi)
             if TIME == "48hr":
-                inc = -1.2*dim
+                inc = -1.*dim
             elif TIME =="72hr":
-                inc = -1.5*dim
+                inc = -1.2*dim
             else:
-                inc = -2.0*dim
+                inc = -1.6*dim
             for z in uniquez:
                 if z in range(int(min(uniquez+3)),int(max(uniquez-3))):
                     centers_z = centers[np.where(centers[:,0]==z)]
@@ -283,8 +283,8 @@ for TIME in TIMES:
                     if not inhull_Delaunay(hulls[zid], center[1:]):
                         cells_to_remove.append(cell.label)
                 
-            for lab in cells_to_remove:
-                CT_F3._del_cell(lab)
+            # for lab in cells_to_remove:
+            #     CT_F3._del_cell(lab)
             
             CT_F3.update_labels()
 
@@ -299,8 +299,8 @@ for TIME in TIMES:
                     if not inhull_Delaunay(hulls[zid], center[1:]):
                         cells_to_remove.append(cell.label)
                 
-            for lab in cells_to_remove:
-                CT_A12._del_cell(lab)
+            # for lab in cells_to_remove:
+            #     CT_A12._del_cell(lab)
             
             CT_A12.update_labels()
 
@@ -315,14 +315,14 @@ for TIME in TIMES:
                     if not inhull_Delaunay(hulls[zid], center[1:]):
                         cells_to_remove.append(cell.label)
                 
-            for lab in cells_to_remove:
-                CT_Casp3._del_cell(lab)
+            # for lab in cells_to_remove:
+            #     CT_Casp3._del_cell(lab)
             
             CT_Casp3.update_labels()
             
 
-            CT_F3.plot_tracking()
-            CT_A12.plot_tracking()
+            # CT_F3.plot_tracking()
+            # CT_A12.plot_tracking()
             CT_Casp3.plot_tracking()
 
             ## Now contract the shape as much as we want. 

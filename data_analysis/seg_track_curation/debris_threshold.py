@@ -88,8 +88,7 @@ for TIME in TIMES:
             CT_F3.load()
             total_cells[-1].append(len(CT_F3.jitcells))
             # plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], path_save="{}/debris/{}/{}hr_{}_{}_{}".format(path_figures, TIME, TIME, COND, channel_names[ch],f), xlim=(0,400))
-            remove_small_cells(CT_F3, 57)
-            CT_F3.update_labels()
+            remove_small_cells(CT_F3, 65, update_labels=True)
             true_cells[-1].append(len(CT_F3.jitcells))
 
 
@@ -133,8 +132,7 @@ for TIME in TIMES:
             CT_A12.load()
             total_cells[-1].append(len(CT_A12.jitcells))
             # plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], path_save="{}/debris/{}/{}hr_{}_{}_{}".format(path_figures, TIME, TIME, COND, channel_names[ch],f), xlim=(0,400))
-            remove_small_cells(CT_A12, 57)
-            CT_A12.update_labels()
+            remove_small_cells(CT_A12, 65, update_labels=True)
             true_cells[-1].append(len(CT_A12.jitcells))
 
 
@@ -179,8 +177,7 @@ for TIME in TIMES:
             CT_Casp3.load()
             total_cells[-1].append(len(CT_Casp3.jitcells))
             # plot_cell_sizes(CT_Casp3, bw=bws[f], bins=bins[f], path_save="{}/debris/{}/{}hr_{}_{}_{}".format(path_figures, TIME, TIME, COND, channel_names[ch],f), xlim=(0,400))
-            remove_small_cells(CT_Casp3, 57)
-            CT_Casp3.update_labels()
+            remove_small_cells(CT_Casp3, 65, update_labels=True)
 
         # import numpy as np
         # print(np.array(total_cells) - np.array(true_cells))
