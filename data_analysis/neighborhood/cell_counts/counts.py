@@ -355,6 +355,7 @@ for TIME in TIMES:
                 
             Casp3_F3 = 0
             Casp3_A12 = 0
+            pre_casp3 = len(centers)
             for cell in CT_Casp3.jitcells:
                 casp3 = []
                 a12 = []
@@ -425,7 +426,7 @@ for TIME in TIMES:
             distances, neighs = nbrs.kneighbors(centers)
 
             dist_th = (dim*xyres)*20.0 #microns
-            dist_th_near = (dim*xyres)*0.001
+            dist_th_near = (dim*xyres)*0.5
 
             true_neighs = []
 
@@ -435,7 +436,8 @@ for TIME in TIMES:
                     dist = np.linalg.norm(centers[p]-centers[neigh])
                     if dist < dist_th:
                         if dist > dist_th_near:
-                            true_neigh_p.append(neigh)
+                            if neigh < pre_casp3:
+                                true_neigh_p.append(neigh)
                 true_neighs.append(true_neigh_p)
 
             
