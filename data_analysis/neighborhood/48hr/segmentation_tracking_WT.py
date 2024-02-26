@@ -20,7 +20,7 @@ LABS = []
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
-    channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
+    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file

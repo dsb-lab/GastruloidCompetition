@@ -2,8 +2,8 @@
 from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/WT/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/96hr/WT/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -20,7 +20,7 @@ LABS = []
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
-    channel_names = ["F3", "A12", "Casp3", "BF", "DAPI"]
+    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file
@@ -90,7 +90,7 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.load()
+    CT_F3.run()
     CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
@@ -124,7 +124,7 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.load()
+    CT_A12.run()
     CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
@@ -152,7 +152,7 @@ for f, file in enumerate(files):
     segmentation_args={
         'method': 'stardist2D', 
         'model': model, 
-        'blur': [5,1], 
+        'blur': [1,1], 
         # 'n_tiles': (2,2),
     }
     CT_Casp3 = CellTracking(
@@ -166,5 +166,5 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_Casp3.load()
+    CT_Casp3.run()
     CT_Casp3.plot_tracking()
