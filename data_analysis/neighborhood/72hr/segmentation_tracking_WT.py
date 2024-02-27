@@ -1,5 +1,10 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
+from embdevtools import get_file_name, CellTracking, get_file_names, correct_path
+
+### LOAD STARDIST MODEL ###
+from stardist.models import StarDist2D
+model = StarDist2D.from_pretrained('2D_versatile_fluo')
+
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/72hr/WT/'
@@ -14,10 +19,6 @@ except:
 ### GET FULL FILE NAME AND FILE CODE ###
 files = get_file_names(path_data_dir)
 
-CENTERS = []
-FATES = []
-LABS = []
-
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
@@ -25,23 +26,19 @@ if "96hr" in path_data_dir:
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-    path_save = path_save_dir+embcode
+    path_save = correct_path(path_save_dir+embcode)
     try: 
         files = get_file_names(path_save)
     except: 
         import os
         os.mkdir(path_save)
 
-    ### LOAD STARDIST MODEL ###
-    from stardist.models import StarDist2D
-    model = StarDist2D.from_pretrained('2D_versatile_fluo')
-
     ### DEFINE ARGUMENTS ###
     segmentation_args={
         'method': 'stardist2D', 
         'model': model, 
         'blur': None, 
-        # 'n_tiles': (2,2),
+        'min_outline_length':100,
     }
 
     concatenation3D_args = {
@@ -71,7 +68,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -103,7 +101,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
 
     chans = [ch]
@@ -137,7 +136,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch]
+        'channels':[ch],
+        'min_outline_length':75,
     }
     
     chans = [ch]
@@ -165,4 +165,3 @@ for f, file in enumerate(files):
 
     CT_Casp3.run()
     # CT_Casp3.plot_tracking()
-
