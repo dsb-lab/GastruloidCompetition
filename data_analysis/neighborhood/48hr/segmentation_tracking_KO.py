@@ -23,7 +23,7 @@ channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
-for f, file in enumerate(files):
+for f, file in enumerate(files[:1]):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
     path_save = correct_path(path_save_dir+embcode)
@@ -87,8 +87,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.run()
-    # CT_F3.plot_tracking()
+    CT_F3.load()
+    CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
     batch_args = {
@@ -121,7 +121,7 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.run()
+    # CT_A12.load()
     # CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
@@ -163,5 +163,10 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_Casp3.run()
-    # CT_Casp3.plot_tracking()
+    CT_Casp3.load()
+    CT_Casp3.plot_tracking()
+    
+import napari
+from scipy import ndimage as ndi
+import napari
+
