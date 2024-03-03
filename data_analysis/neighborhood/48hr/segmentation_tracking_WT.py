@@ -87,8 +87,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.run()
-    # CT_F3.plot_tracking()
+    CT_F3.load()
+    CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
     batch_args = {
@@ -121,8 +121,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.run()
-    # CT_A12.plot_tracking()
+    CT_A12.load()
+    CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
 
@@ -149,7 +149,7 @@ for f, file in enumerate(files):
     segmentation_args={
         'method': 'stardist2D', 
         'model': model, 
-        'blur': [5,1], 
+        'blur': [3,1], 
         # 'n_tiles': (2,2),
     }
     CT_Casp3 = CellTracking(
@@ -163,8 +163,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_Casp3.run()
-    # CT_Casp3.plot_tracking()
+    CT_Casp3.load()
+    CT_Casp3.plot_tracking()
 
 
 #     from embdevtools.celltrack.core.tools.cell_tools import remove_small_cells

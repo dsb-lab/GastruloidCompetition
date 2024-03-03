@@ -1,6 +1,6 @@
 ### LOAD PACKAGE ###
 from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
-from embdevtools import remove_small_cells, plot_cell_sizes
+from embdevtools import remove_small_cells, plot_cell_sizes, correct_path
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 
@@ -49,7 +49,7 @@ for TIME in TIMES:
         for f, file in enumerate(files):
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-            path_save = path_save_dir+embcode
+            path_save = correct_path(path_save_dir+embcode)
 
             ### DEFINE ARGUMENTS ###
             error_correction_args = {
@@ -99,7 +99,7 @@ for TIME in TIMES:
         for f, file in enumerate(files):
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-            path_save = path_save_dir+embcode
+            path_save = correct_path(path_save_dir+embcode)
 
             ch = channel_names.index("A12")
             batch_args = {
@@ -143,7 +143,7 @@ for TIME in TIMES:
         for f, file in enumerate(files):
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-            path_save = path_save_dir+embcode
+            path_save = correct_path(path_save_dir+embcode)
 
             ch = channel_names.index("Casp3")
 

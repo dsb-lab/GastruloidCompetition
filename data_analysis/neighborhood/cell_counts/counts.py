@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
+from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift, correct_path
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,7 +15,7 @@ except:
     os.mkdir(path_figures)
     
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-TIMES = ["48hr", "72hr", "96hr"]
+TIMES = ["48hr"]
 CONDS = ["WT", "KO"]
 for TIME in TIMES:
     path_figures_time = "{}{}/".format(path_figures, TIME)
@@ -50,7 +50,7 @@ for TIME in TIMES:
         for f, file in enumerate(files):
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-            path_save = path_save_dir+embcode
+            path_save = correct_path(path_save_dir+embcode)
             try: 
                 files = get_file_names(path_save)
             except: 
@@ -318,12 +318,66 @@ for TIME in TIMES:
             # for lab in cells_to_remove:
             #     CT_Casp3._del_cell(lab)
             
+            import numpy as np
+            from scipy import stats
+            
+            def compute_distance_xy(x1, x2, y1, y2):
+                """
+                Parameters
+                ----------
+                x1 : number
+                    x coordinate of point 1
+                x2 : number
+                    x coordinate of point 2
+                y1 : number
+                    y coordinate of point 1
+                y2 : number
+                    y coordinate of point 2
+
+                Returns
+                -------
+                dist : number
+                    euclidean distance between points (x1, y1) and (x2, y2)
+                """
+                dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                return dist
+    
+            labs_rem = []
+            for cell in CT_Casp3.jitcells:
+                zc = int(cell.centers[0][0])
+                zcid = cell.zs[0].index(zc)
+                center2D = cell.centers[0][1:]
+
+                mask = cell.masks[0][zcid]
+                stack = CT_Casp3.hyperstack[0, zc, ch]
+                
+                dists = []
+                vals = []
+                for point in mask:
+                    dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+                    dists.append(dist)
+                    val = stack[point[1], point[0]]
+                    vals.append(val)
+                dists = np.array(dists)
+                vals  = np.array(vals)
+                idxs = np.where(dists < 8.0)[0]
+                
+                dists = dists[idxs]
+                vals = vals[idxs]
+                slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+                if slope < 0:
+                    labs_rem.append(cell.label)
+            
+            
+            for lab in labs_rem:
+                CT_Casp3._del_cell(lab)
+            
             CT_Casp3.update_labels()
             
 
             # CT_F3.plot_tracking()
             # CT_A12.plot_tracking()
-            CT_Casp3.plot_tracking()
+            # CT_Casp3.plot_tracking()
 
             ## Now contract the shape as much as we want. 
             F3_dist = np.array(F3_dist)
