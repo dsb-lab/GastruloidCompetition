@@ -17,7 +17,52 @@ try:
 except: 
     import os
     os.mkdir(path_save_dir)
-    
+
+def compute_distance_xy(x1, x2, y1, y2):
+    """
+    Parameters
+    ----------
+    x1 : number
+        x coordinate of point 1
+    x2 : number
+        x coordinate of point 2
+    y1 : number
+        y coordinate of point 1
+    y2 : number
+        y coordinate of point 2
+
+    Returns
+    -------
+    dist : number
+        euclidean distance between points (x1, y1) and (x2, y2)
+    """
+    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return dist
+
+def compute_distance_xyz(x1, x2, y1, y2, z1, z2):
+    """
+    Parameters
+    ----------
+    x1 : number
+        x coordinate of point 1
+    x2 : number
+        x coordinate of point 2
+    y1 : number
+        y coordinate of point 1
+    y2 : number
+        y coordinate of point 2
+    z1 : number
+        z coordinate of point 1
+    z2 : number
+        z coordinate of point 2
+    Returns
+    -------
+    dist : number
+        euclidean distance between points (x1, y1, z1) and (x2, y2, z2)
+    """
+    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
+    return dist
+
 ### GET FULL FILE NAME AND FILE CODE ###
 files = get_file_names(path_data_dir)
 
@@ -27,6 +72,10 @@ if "96hr" in path_data_dir:
 
 cells = []
 masks_fluo_values = []
+CENTERS = []
+DISTSF3 = []
+DISTSA12 = []
+DISTSCasp3 = []
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file
@@ -141,7 +190,7 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[0,1,ch],
+        'channels':[ch],
         'min_outline_length':75,
     }
     
@@ -170,26 +219,7 @@ for f, file in enumerate(files):
     
     CT_Casp3.load()
     # CT_Casp3.plot_tracking(plot_args=plot_args)
-    def compute_distance_xy(x1, x2, y1, y2):
-        """
-        Parameters
-        ----------
-        x1 : number
-            x coordinate of point 1
-        x2 : number
-            x coordinate of point 2
-        y1 : number
-            y coordinate of point 1
-        y2 : number
-            y coordinate of point 2
 
-        Returns
-        -------
-        dist : number
-            euclidean distance between points (x1, y1) and (x2, y2)
-        """
-        dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        return dist
     import numpy as np
     from scipy import stats
     labs_rem = []
@@ -225,137 +255,128 @@ for f, file in enumerate(files):
         CT_Casp3._del_cell(lab)
     
     CT_Casp3.plot_tracking(plot_args=plot_args)
+    CT_Casp3.update_labels()
+    centers = []
+    for cell in CT_F3.jitcells:
+        centers.append(cell.centers[0])
 
-    # labs_rem = []
-    # for cell in CT_Casp3.jitcells:
-    #     cells.append(cell)
-    #     zc = int(cell.centers[0][0])
-    #     zcid = cell.zs[0].index(zc)
+    for cell in CT_A12.jitcells:
+        centers.append(cell.centers[0])
 
-    #     mask = cell.masks[0][zcid]
-    #     area = len(mask) * (CT_Casp3.CT_info.xyresolution**2)
-    #     if area < 200:
-    #         labs_rem.append(cell.label)
-    
-    # labs_rem = []
-    # for cell in CT_Casp3.jitcells:
-    #     cells.append(cell)
-    #     zc = int(cell.centers[0][0])
-    #     zcid = cell.zs[0].index(zc)
+    centroid = np.mean(centers, axis=0)
 
-    #     mask = cell.masks[0][zcid]
-    #     stack = CT_Casp3.hyperstack[0, zc, ch]
-    #     mean_val = np.mean(stack[mask[:, 0], mask[:, 1]])
-    #     area = len(mask)
-    #     # if mean_val < 10:
-    #     #     if area < 30:
-    #     #         labs_rem.append(cell.label)
+    distsF3 = []
+    for cell in CT_F3.jitcells:
+        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+        distsF3.append(dist)
 
-    # for lab in labs_rem:
-    #     CT_Casp3._del_cell(lab)
-    
+    distsA12 = []
+    for cell in CT_A12.jitcells:
+        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+        distsA12.append(dist)
 
 
-len(cells)
-len(masks_fluo_values)
+    distsCasp3 = []
+    for cell in CT_Casp3.jitcells:
+        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+        distsCasp3.append(dist)
 
-import numpy as np
-
-mean_vals = np.array([np.mean(vals) for vals in masks_fluo_values])
-sum_vals = np.array([np.sum(vals) for vals in masks_fluo_values])
-std_vals = np.array([np.std(vals) for vals in masks_fluo_values])
-areas = np.array([len(vals) for vals in masks_fluo_values]) * (CT_Casp3.CT_info.xyresolution**2)
-
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-# ax.hist(mean_vals, bins=1000)
-ax.scatter(areas, mean_vals, s=5)
-ax.hlines(3, areas.min(), areas.max())
-# ax.vlines(65*CT_Casp3.CT_info.xyresolution, mean_vals.min(), mean_vals.max())
-ax.set_yscale("log")
-ax.set_xscale("log")
-plt.show()
+    CENTERS.append(centers)
+    DISTSF3.append(distsF3)
+    DISTSA12.append(distsA12)
+    DISTSCasp3.append(distsCasp3)
 
 
-def compute_distance_xy(x1, x2, y1, y2):
-    """
-    Parameters
-    ----------
-    x1 : number
-        x coordinate of point 1
-    x2 : number
-        x coordinate of point 2
-    y1 : number
-        y coordinate of point 1
-    y2 : number
-        y coordinate of point 2
 
-    Returns
-    -------
-    dist : number
-        euclidean distance between points (x1, y1) and (x2, y2)
-    """
-    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-    return dist
 
-from scipy import stats
+# len(cells)
+# len(masks_fluo_values)
 
-for cell in CT_Casp3.jitcells:
-    center2D = cell.centers[0][1:]
-    zc = int(cell.centers[0][0])
-    zcid = cell.zs[0].index(zc)
-    mask = cell.masks[0][zcid]
-    outline = cell.outlines[0][zcid]
-    stack = CT_Casp3.hyperstack[0, zc, 3]
+# import numpy as np
 
-    dists = []
-    vals = []
-    for point in mask:
-        dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
-        dists.append(dist)
-        val = stack[point[1], point[0]]
-        vals.append(val)
+# mean_vals = np.array([np.mean(vals) for vals in masks_fluo_values])
+# sum_vals = np.array([np.sum(vals) for vals in masks_fluo_values])
+# std_vals = np.array([np.std(vals) for vals in masks_fluo_values])
+# areas = np.array([len(vals) for vals in masks_fluo_values]) * (CT_Casp3.CT_info.xyresolution**2)
+
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# # ax.hist(mean_vals, bins=1000)
+# ax.scatter(areas, mean_vals, s=5)
+# ax.hlines(3, areas.min(), areas.max())
+# # ax.vlines(65*CT_Casp3.CT_info.xyresolution, mean_vals.min(), mean_vals.max())
+# ax.set_yscale("log")
+# ax.set_xscale("log")
+# plt.show()
+
+# from scipy import stats
+
+# for cell in CT_Casp3.jitcells:
+#     center2D = cell.centers[0][1:]
+#     zc = int(cell.centers[0][0])
+#     zcid = cell.zs[0].index(zc)
+#     mask = cell.masks[0][zcid]
+
+#     outline = cell.outlines[0][zcid]
+#     stack = CT_Casp3.hyperstack[0, zc, 3]
+
+#     dists = []
+#     vals = []
+#     for point in mask:
+#         dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+#         dists.append(dist)
+#         val = stack[point[1], point[0]]
+#         vals.append(val)
         
 
-    r = 20
+#     r = 20
+#     import matplotlib.pyplot as plt
+    
+#     dists = np.array(dists)
+#     vals  = np.array(vals)
+#     idxs = np.where(dists < 8.0)[0]
+    
+#     dists = dists[idxs]
+#     vals = vals[idxs]
+#     slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+
+#     if slope > 0:
+#         fig, ax = plt.subplots(1,2,figsize=(10, 5))
+#         ax[0].imshow(stack)
+#         ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
+#         ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
+#         ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
+#         ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
+#         ax[0].set_title("cell label {}".format(cell.label))
+    
+#         ax[1].scatter(dists, vals, s=5)
+#         ax[1].plot(dists, dists*slope + intercept)
+#         ax[1].set_ylabel("pixel intensity")
+#         ax[1].set_xlabel("distance to center")
+#         plt.show()
+#     elif slope > -0.5:
+#         fig, ax = plt.subplots(1,2,figsize=(10, 5))
+#         ax[0].imshow(stack)
+#         ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
+#         ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
+#         ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
+#         ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
+#         ax[0].set_title("cell label {}".format(cell.label))
+    
+#         ax[1].scatter(dists, vals, s=5)
+#         ax[1].plot(dists, dists*slope + intercept)
+#         ax[1].set_ylabel("pixel intensity")
+#         ax[1].set_xlabel("distance to center")
+#         plt.show()
+#     else:
+        
+#         continue
+
+for f, file in enumerate(files):
     import matplotlib.pyplot as plt
-    
-    dists = np.array(dists)
-    vals  = np.array(vals)
-    idxs = np.where(dists < 8.0)[0]
-    
-    dists = dists[idxs]
-    vals = vals[idxs]
-    slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+    fig, ax = plt.subplots()
+    ax.hist(DISTSF3[f], density=True, color="green", alpha=0.5)
+    ax.hist(DISTSA12[f], density=True, color="magenta", alpha=0.5)
+    ax.hist(DISTSCasp3[f], density=True, color="yellow", alpha=0.5)
+    plt.show()
 
-    if slope > 0:
-        fig, ax = plt.subplots(1,2,figsize=(10, 5))
-        ax[0].imshow(stack)
-        ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
-        ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
-        ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
-        ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
-        ax[0].set_title("cell label {}".format(cell.label))
-    
-        ax[1].scatter(dists, vals, s=5)
-        ax[1].plot(dists, dists*slope + intercept)
-        ax[1].set_ylabel("pixel intensity")
-        ax[1].set_xlabel("distance to center")
-        plt.show()
-    elif slope > -0.5:
-        fig, ax = plt.subplots(1,2,figsize=(10, 5))
-        ax[0].imshow(stack)
-        ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
-        ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
-        ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
-        ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
-        ax[0].set_title("cell label {}".format(cell.label))
-    
-        ax[1].scatter(dists, vals, s=5)
-        ax[1].plot(dists, dists*slope + intercept)
-        ax[1].set_ylabel("pixel intensity")
-        ax[1].set_xlabel("distance to center")
-        plt.show()
-    else:
-        
-        continue

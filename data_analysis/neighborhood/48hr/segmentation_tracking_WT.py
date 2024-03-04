@@ -1,5 +1,7 @@
 ### LOAD PACKAGE ###
 from embdevtools import get_file_name, CellTracking, get_file_names, correct_path
+import numpy as np
+from scipy import stats
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -15,13 +17,64 @@ try:
 except: 
     import os
     os.mkdir(path_save_dir)
-    
+
+def compute_distance_xy(x1, x2, y1, y2):
+    """
+    Parameters
+    ----------
+    x1 : number
+        x coordinate of point 1
+    x2 : number
+        x coordinate of point 2
+    y1 : number
+        y coordinate of point 1
+    y2 : number
+        y coordinate of point 2
+
+    Returns
+    -------
+    dist : number
+        euclidean distance between points (x1, y1) and (x2, y2)
+    """
+    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return dist
+
+def compute_distance_xyz(x1, x2, y1, y2, z1, z2):
+    """
+    Parameters
+    ----------
+    x1 : number
+        x coordinate of point 1
+    x2 : number
+        x coordinate of point 2
+    y1 : number
+        y coordinate of point 1
+    y2 : number
+        y coordinate of point 2
+    z1 : number
+        z coordinate of point 1
+    z2 : number
+        z coordinate of point 2
+    Returns
+    -------
+    dist : number
+        euclidean distance between points (x1, y1, z1) and (x2, y2, z2)
+    """
+    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
+    return dist
+
 ### GET FULL FILE NAME AND FILE CODE ###
 files = get_file_names(path_data_dir)
 
 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 if "96hr" in path_data_dir:
     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+
+cells = []
+masks_fluo_values = []
+CENTERS = []
+DISTSF3 = []
+DISTSA12 = []
 
 for f, file in enumerate(files):
     path_data = path_data_dir+file
@@ -88,7 +141,7 @@ for f, file in enumerate(files):
     )
 
     CT_F3.load()
-    CT_F3.plot_tracking()
+    # CT_F3.plot_tracking()
     
     ch = channel_names.index("A12")
     batch_args = {
@@ -122,7 +175,7 @@ for f, file in enumerate(files):
     )
 
     CT_A12.load()
-    CT_A12.plot_tracking()
+    # CT_A12.plot_tracking()
     
     ch = channel_names.index("Casp3")
 
@@ -162,229 +215,159 @@ for f, file in enumerate(files):
         batch_args=batch_args,
         channels=chans
     )
-
+    
     CT_Casp3.load()
-    CT_Casp3.plot_tracking()
+    # CT_Casp3.plot_tracking(plot_args=plot_args)
 
+    import numpy as np
+    from scipy import stats
+    labs_rem = []
+    for cell in CT_Casp3.jitcells:
+        cells.append(cell)
+        zc = int(cell.centers[0][0])
+        zcid = cell.zs[0].index(zc)
+        center2D = cell.centers[0][1:]
 
-#     from embdevtools.celltrack.core.tools.cell_tools import remove_small_cells
-
-
-
-#     import numpy as np
-
-#     cells = [cell for sublist in [CT_A12.jitcells, CT_F3.jitcells] for cell in sublist]
-#     fates = [s for s, sublist in enumerate([CT_A12.jitcells, CT_F3.jitcells]) for cell in sublist]
-
-#     centers = []
-#     labs = []
-
-#     for c, cell in enumerate(cells):
-#         centers.append(cell.centers[0]*[zres, xyres, xyres])
-#         if c >= len(CT_A12.jitcells):
-#             labs.append(cell.label + CT_A12.max_label + 1)
-#         else:
-#             labs.append(cell.label)
-
-#     max_pre = np.max(labs)
-#     for cell in CT_Casp3.jitcells:
-#         cells.append(cell)
-#         casp3 = []
-#         a12 = []
-#         f3 = []
-#         for zid, z in enumerate(cell.zs[0]):
-#             mask = cell.masks[0][zid]
-#             casp3.append(np.mean(IMGS_Casp3[0][z][mask[:,1], mask[:,0]]))
-#             a12.append(np.mean(IMGS_A12[0][z][mask[:,1], mask[:,0]]))
-#             f3.append(np.mean(IMGS_F3[0][z][mask[:,1], mask[:,0]]))
-
-#         # idx = np.argmax(casp3)
-#         zz = np.int64(cell.centers[0][0])
-#         idx = cell.zs[0].index(zz)
-#         if f3[idx] > a12[idx]:
-#             fates.append(2)
-#         else:
-#             fates.append(3)
+        mask = cell.masks[0][zcid]
+        stack = CT_Casp3.hyperstack[0, zc, ch]
+        masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
         
-#         centers.append(cell.centers[0]*[zres, xyres, xyres])
-#         labs.append(cell.label + max_pre + 1)
+        dists = []
+        vals = []
+        for point in mask:
+            dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+            dists.append(dist)
+            val = stack[point[1], point[0]]
+            vals.append(val)
+        dists = np.array(dists)
+        vals  = np.array(vals)
+        idxs = np.where(dists < 8.0)[0]
+        
+        dists = dists[idxs]
+        vals = vals[idxs]
+        slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+        if slope < 0:
+            labs_rem.append(cell.label)
+    
+    
+    for lab in labs_rem:
+        CT_Casp3._del_cell(lab)
+    
+    # CT_Casp3.plot_tracking(plot_args=plot_args)
+
+    centers = []
+    for cell in CT_F3.jitcells:
+        centers.append(cell.centers[0])
+
+    for cell in CT_A12.jitcells:
+        centers.append(cell.centers[0])
+
+    centroid = np.mean(centers, axis=0)
+
+    distsF3 = []
+    for cell in CT_F3.jitcells:
+        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+        distsF3.append(dist)
+
+    distsA12 = []
+    for cell in CT_A12.jitcells:
+        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+        distsA12.append(dist)
 
 
-#     centers = np.array(centers)
-#     labs = np.array(labs)
-
-#     CENTERS.append(centers)
-#     LABS.append(labs)
-#     FATES.append(fates)
-#     CASP3 = []
-#     A12 = []
-#     F3 = []
-#     na12 = 0
-#     nf3 = 0
-#     labs = []
-#     for cell in CT_Casp3.jitcells:
-#         casp3 = []
-#         a12 = []
-#         f3 = []
-#         for zid, z in enumerate(cell.zs[0]):
-#             mask = cell.masks[0][zid]
-#             casp3.append(np.mean(_IMGS_Casp3[0][z][mask[:,1], mask[:,0]]))
-#             a12.append(np.mean(_IMGS_A12[0][z][mask[:,1], mask[:,0]]))
-#             f3.append(np.mean(_IMGS_F3[0][z][mask[:,1], mask[:,0]]))
-
-#         # idx = np.argmax(casp3)
-#         zz = np.int64(cell.centers[0][0])
-#         idx = cell.zs[0].index(zz)
-#         if f3[idx] > a12[idx]:
-#             nf3 +=1
-#         else:
-#             na12 +=1
-#             labs.append(cell.label)
-#         CASP3.append(casp3[idx])
-#         A12.append(a12[idx])
-#         F3.append(f3[idx])
-
-#     print("A12", na12 / (len(CT_A12.jitcells)+na12))
-#     print("F3", nf3 / (len(CT_F3.jitcells)+nf3))
+    CENTERS.append(centers)
+    DISTSF3.append(distsF3)
+    DISTSA12.append(distsA12)
 
 
-# from scipy.spatial import Delaunay
 
+# len(cells)
+# len(masks_fluo_values)
 
-# def find_neighbors(pindex, triang):
-#     neighbors = list()
-#     for simplex in triang.simplices:
-#         if pindex in simplex:
-#             neighbors.extend([simplex[i] for i in range(len(simplex)) if simplex[i] != pindex])
-#             '''
-#             this is a one liner for if a simplex contains the point we`re interested in,
-#             extend the neighbors list by appending all the *other* point indices in the simplex
-#             '''
-#     #now we just have to strip out all the dulicate indices and return the neighbors list:
-#     return list(set(neighbors))
+# import numpy as np
 
-# # For the caspase cells, check fate of neighbors as a percentage
-
-# tris =  []
-# NEIGHS = []
-# for f in range(len(files)):
-#     centers = CENTERS[f]
-#     tri = Delaunay(centers)
-#     tris.append(tri)
-
-#     neighs = []
-#     for p, point in enumerate(centers):
-#         neighs_p = find_neighbors(p, tri)
-#         neighs.append(neighs_p)
-
-#     NEIGHS.append(neighs)
-
-# neighs_fates_A12_sum = np.zeros((len(files), 2))
-# neighs_fates_F3_sum = np.zeros((len(files), 2))
-# neighs_fates_Casp3_A12_sum = np.zeros((len(files), 2))
-# neighs_fates_Casp3_F3_sum = np.zeros((len(files), 2))
-
-# dist_th = 12 #microns
-# dist_th_near = 5
-# for f in range(len(files)):
-#     centers = CENTERS[f]
-#     neighs = NEIGHS[f]
-#     fates = FATES[f]
-#     labs = LABS[f]
-
-#     true_neighs = []
-
-#     for p, neigh_p in enumerate(neighs):
-#         true_neigh_p = []
-#         for neigh in neigh_p:
-#             dist = np.linalg.norm(centers[p]-centers[neigh])
-#             if dist < dist_th:
-#                 if dist > dist_th_near:
-#                     true_neigh_p.append(neigh)
-#         true_neighs.append(true_neigh_p)
-
-#     neighs_labs = []
-#     neighs_fates = []
-#     for p, neigh_p in enumerate(true_neighs):
-#         lbs = []
-#         fts = []
-#         for neigh in neigh_p:
-#             lbs.append(labs[neigh])
-#             fts.append(fates[neigh])
-#         neighs_labs.append(lbs)
-#         neighs_fates.append(fts)
-
-
-#     neighs_n = [len(neighs_p) for neighs_p in true_neighs]
-#     neighs_n_A12 = [n for i,n in enumerate(neighs_n) if fates[i] == 0]
-#     neighs_n_F3 = [n for i,n in enumerate(neighs_n) if fates[i] == 1]
-#     neighs_n_Casp3 = [n for i,n in enumerate(neighs_n) if fates[i] > 1]
-
-#     y = [np.mean(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
-#     print(y)
-#     yerr = [np.std(x) for x in [neighs_n_A12, neighs_n_F3, neighs_n_Casp3]]
-#     print(yerr)
-#     import matplotlib.pyplot as plt
-#     # plt.bar([1,2,3], y, tick_label=["A12", "F3", "Casp3"], color=["magenta", "green", "yellow"], yerr=yerr, capsize=6)
-#     # plt.ylabel("# of neighbors")
-#     # plt.show()
-
-#     neighs_fates_A12 = [n for i,n in enumerate(neighs_fates) if fates[i] == 0]
-#     neighs_fates_F3 = [n for i,n in enumerate(neighs_fates) if fates[i] == 1]
-#     neighs_fates_Casp3_F3 = [n for i,n in enumerate(neighs_fates) if fates[i] == 2]
-#     neighs_fates_Casp3_A12 = [n for i,n in enumerate(neighs_fates) if fates[i] == 3]
-
-
-#     for n_fates in neighs_fates_A12:
-#         for _f in n_fates:
-#             if _f in [0]:
-#                 neighs_fates_A12_sum[f,0] += 1
-#             elif _f in [1]:
-#                 neighs_fates_A12_sum[f,1] += 1
-
-#     for n_fates in neighs_fates_F3:
-#         for _f in n_fates:
-#             if _f in [0]:
-#                 neighs_fates_F3_sum[f,0] += 1
-#             elif _f in [1]:
-#                 neighs_fates_F3_sum[f,1] += 1
-
-#     for n_fates in neighs_fates_Casp3_F3:
-#         for _f in n_fates:
-#             if _f in [0]:
-#                 neighs_fates_Casp3_F3_sum[f,0] += 1
-#             elif _f in [1]:
-#                 neighs_fates_Casp3_F3_sum[f,1] += 1
-
-#     for n_fates in neighs_fates_Casp3_A12:
-#         for _f in n_fates:
-#             if _f in [0]:
-#                 neighs_fates_Casp3_A12_sum[f,0] += 1
-#             elif _f in [1]:
-#                 neighs_fates_Casp3_A12_sum[f,1] += 1
-
-
-#     neighs_fates_A12_sum[f] /= np.sum(neighs_fates_A12_sum[f])
-#     neighs_fates_F3_sum[f] /= np.sum(neighs_fates_F3_sum[f])
-#     neighs_fates_Casp3_F3_sum[f] /= np.sum(neighs_fates_Casp3_F3_sum[f])
-#     neighs_fates_Casp3_A12_sum[f] /= np.sum(neighs_fates_Casp3_A12_sum[f])
-
+# mean_vals = np.array([np.mean(vals) for vals in masks_fluo_values])
+# sum_vals = np.array([np.sum(vals) for vals in masks_fluo_values])
+# std_vals = np.array([np.std(vals) for vals in masks_fluo_values])
+# areas = np.array([len(vals) for vals in masks_fluo_values]) * (CT_Casp3.CT_info.xyresolution**2)
 
 # import matplotlib.pyplot as plt
-
-# bot = [np.mean(neighs_fates_A12_sum[:,0]), np.mean(neighs_fates_Casp3_A12_sum[:,0]), np.mean(neighs_fates_F3_sum[:,0]), np.mean(neighs_fates_Casp3_F3_sum[:,0])]
-# bot_std = [np.std(neighs_fates_A12_sum[:,0]), np.std(neighs_fates_Casp3_A12_sum[:,0]), np.std(neighs_fates_F3_sum[:,0]), np.std(neighs_fates_Casp3_F3_sum[:,0])]
-
-# plt.bar([1,2,3,4], bot, color="magenta", yerr=bot_std, capsize=6)
-# top = [np.mean(neighs_fates_A12_sum[:,1]), np.mean(neighs_fates_Casp3_A12_sum[:,1]), np.mean(neighs_fates_F3_sum[:,1]), np.mean(neighs_fates_Casp3_F3_sum[:,1])]
-# top_std = [np.std(neighs_fates_A12_sum[:,1]), np.std(neighs_fates_Casp3_A12_sum[:,1]), np.std(neighs_fates_F3_sum[:,1]), np.std(neighs_fates_Casp3_F3_sum[:,1])]
-# plt.bar([1,2,3,4], top, bottom =bot, tick_label=["A12", "Casp3 - A12", "F3", "Casp3 - F3"], color="green", yerr=top_std, capsize=6)
-# plt.ylabel("percentage of neighbors")
+# fig, ax = plt.subplots()
+# # ax.hist(mean_vals, bins=1000)
+# ax.scatter(areas, mean_vals, s=5)
+# ax.hlines(3, areas.min(), areas.max())
+# # ax.vlines(65*CT_Casp3.CT_info.xyresolution, mean_vals.min(), mean_vals.max())
+# ax.set_yscale("log")
+# ax.set_xscale("log")
 # plt.show()
 
-# if True:
-#     print("A12", np.mean(neighs_fates_A12_sum, axis=0))
-#     print("Casp3 - A12", np.mean(neighs_fates_Casp3_A12_sum, axis=0))
-#     print("F3", np.mean(neighs_fates_F3_sum, axis=0))
-#     print("Casp3 - F3", np.mean(neighs_fates_Casp3_F3_sum, axis=0))
+# from scipy import stats
+
+# for cell in CT_Casp3.jitcells:
+#     center2D = cell.centers[0][1:]
+#     zc = int(cell.centers[0][0])
+#     zcid = cell.zs[0].index(zc)
+#     mask = cell.masks[0][zcid]
+
+#     outline = cell.outlines[0][zcid]
+#     stack = CT_Casp3.hyperstack[0, zc, 3]
+
+#     dists = []
+#     vals = []
+#     for point in mask:
+#         dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+#         dists.append(dist)
+#         val = stack[point[1], point[0]]
+#         vals.append(val)
+        
+
+#     r = 20
+#     import matplotlib.pyplot as plt
+    
+#     dists = np.array(dists)
+#     vals  = np.array(vals)
+#     idxs = np.where(dists < 8.0)[0]
+    
+#     dists = dists[idxs]
+#     vals = vals[idxs]
+#     slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+
+#     if slope > 0:
+#         fig, ax = plt.subplots(1,2,figsize=(10, 5))
+#         ax[0].imshow(stack)
+#         ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
+#         ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
+#         ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
+#         ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
+#         ax[0].set_title("cell label {}".format(cell.label))
+    
+#         ax[1].scatter(dists, vals, s=5)
+#         ax[1].plot(dists, dists*slope + intercept)
+#         ax[1].set_ylabel("pixel intensity")
+#         ax[1].set_xlabel("distance to center")
+#         plt.show()
+#     elif slope > -0.5:
+#         fig, ax = plt.subplots(1,2,figsize=(10, 5))
+#         ax[0].imshow(stack)
+#         ax[0].scatter(outline[:,0], outline[:,1], c="w", s=5)
+#         ax[0].scatter([center2D[0]], [center2D[1]], c="w", s=5)
+#         ax[0].set_xlim(center2D[0]-r,center2D[0]+r)
+#         ax[0].set_ylim( center2D[1]-r,center2D[1]+r)
+#         ax[0].set_title("cell label {}".format(cell.label))
+    
+#         ax[1].scatter(dists, vals, s=5)
+#         ax[1].plot(dists, dists*slope + intercept)
+#         ax[1].set_ylabel("pixel intensity")
+#         ax[1].set_xlabel("distance to center")
+#         plt.show()
+#     else:
+        
+#         continue
+
+f = 0
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.hist(DISTSF3[f], density=True, color="green", alpha=0.5)
+ax.hist(DISTSA12[f], density=True, color="magenta", alpha=0.5)
+plt.show()
 
