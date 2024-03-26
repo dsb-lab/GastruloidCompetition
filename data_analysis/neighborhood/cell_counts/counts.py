@@ -576,3 +576,81 @@ for TIME in TIMES:
             print("F3", np.mean(neighs_fates_F3_sum, axis=0))
             print("Casp3 - F3", np.mean(neighs_fates_Casp3_F3_sum, axis=0))
 
+
+
+
+# import numpy as np
+
+# ### CORRECT DISTRIBUTIONS ###
+
+# F3_dist = []
+# for cell in CT_F3.jitcells: 
+#     for zid, z in enumerate(cell.zs[0]):
+#         mask = cell.masks[0][zid]
+#         img = CT_F3.hyperstack[0,z, channel_names.index("F3")]
+#         F3_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
+
+# A12_dist = []
+# for cell in CT_A12.jitcells: 
+#     for zid, z in enumerate(cell.zs[0]):
+#         mask = cell.masks[0][zid]
+#         img = CT_A12.hyperstack[0,z, channel_names.index("A12")]
+#         A12_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
+
+# F3_dist = np.array(F3_dist)
+# A12_dist = np.array(A12_dist)
+
+# mdiff = np.mean(F3_dist) - np.mean(A12_dist)
+# if mdiff > 0:
+#     A12_dist += mdiff
+# else: 
+#     F3_dist -= mdiff 
+    
+# # fig, ax = plt.subplots()
+# # _ = ax.hist(F3_dist, color=[0.9,0,0.9,0.5], bins=40, density=True, label="F3")
+# # _ = ax.hist(A12_dist, color=[0,0.8,0,0.5], bins=40, density=True, label="A12")
+# # plt.legend()
+# # plt.show()
+
+# from scipy.spatial import ConvexHull
+
+
+
+# Casp3_F3 = 0
+# Casp3_A12 = 0
+# for cell in CT_Casp3.jitcells:
+#     casp3 = []
+#     a12 = []
+#     f3 = []
+#     for zid, z in enumerate(cell.zs[0]):
+#         mask = cell.masks[0][zid]
+#         img = CT_Casp3.hyperstack[0,z, channel_names.index("Casp3")]
+#         casp3.append(np.mean(img[mask[:,1], mask[:,0]]))
+        
+#         img = CT_Casp3.hyperstack[0,z, channel_names.index("A12")]
+#         a12.append(np.mean(img[mask[:,1], mask[:,0]]))
+        
+#         img = CT_Casp3.hyperstack[0,z, channel_names.index("F3")]
+#         f3.append(np.mean(img[mask[:,1], mask[:,0]]))
+
+#     # idx = np.argmax(casp3)
+#     zz = np.int64(cell.centers[0][0])
+#     idx = cell.zs[0].index(zz)
+#     if f3[idx] > a12[idx]:
+#         Casp3_F3+=1
+#     else:
+#         Casp3_A12+=1
+
+
+# print()
+# print(TIME)
+# print(COND)
+# print("F3", len(CT_F3.jitcells)+Casp3_F3)
+# print("A12", len(CT_A12.jitcells)+Casp3_A12)
+
+# print("F3 casp3", Casp3_F3)
+# print("A12 casp3", Casp3_A12)
+
+# print("F3 casp3 %", 100 * (Casp3_F3 / (len(CT_F3.jitcells)+Casp3_F3)))
+# print("A12 casp3 %", 100 * (Casp3_A12 / (len(CT_A12.jitcells)+Casp3_A12)))
+# print()
