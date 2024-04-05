@@ -110,10 +110,10 @@ for f, file in enumerate(files):
         'line_builder_mode': 'points',
     }
     
-    ch = channel_names.index("F3")
+    ch_F3 = channel_names.index("F3")
     
     batch_args = {
-        'name_format':"ch"+str(ch)+"_{}",
+        'name_format':"ch"+str(ch_F3)+"_{}",
         'extension':".tif",
     }
     plot_args = {
@@ -122,11 +122,11 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch],
+        'channels':[ch_F3],
         'min_outline_length':75,
     }
     
-    chans = [ch]
+    chans = [ch_F3]
     for _ch in range(len(channel_names)):
         if _ch not in chans:
             chans.append(_ch)
@@ -141,12 +141,13 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_F3.load()
+
+    # CT_F3.load()
     # CT_F3.plot_tracking()
     
-    ch = channel_names.index("A12")
+    ch_A12 = channel_names.index("A12")
     batch_args = {
-        'name_format':"ch"+str(ch)+"_{}",
+        'name_format':"ch"+str(ch_A12)+"_{}",
         'extension':".tif",
     }
     plot_args = {
@@ -155,11 +156,11 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch],
+        'channels':[ch_A12],
         'min_outline_length':75,
     }
 
-    chans = [ch]
+    chans = [ch_A12]
     for _ch in range(len(channel_names)):
         if _ch not in chans:
             chans.append(_ch)
@@ -175,13 +176,13 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.load()
+    # CT_A12.load()
     # CT_A12.plot_tracking()
     
-    ch = channel_names.index("Casp3")
+    ch_Casp3 = channel_names.index("Casp3")
 
     batch_args = {
-        'name_format':"ch"+str(ch)+"_{}",
+        'name_format':"ch"+str(ch_Casp3)+"_{}_early",
         'extension':".tif",
     }
     plot_args = {
@@ -190,11 +191,11 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch],
+        'channels':[ch_A12, ch_F3, ch_Casp3],
         'min_outline_length':75,
     }
     
-    chans = [ch]
+    chans = [ch_Casp3]
     for _ch in range(len(channel_names)):
         if _ch not in chans:
             chans.append(_ch)
@@ -230,7 +231,7 @@ for f, file in enumerate(files):
         center2D = cell.centers[0][1:]
 
         mask = cell.masks[0][zcid]
-        stack = CT_Casp3.hyperstack[0, zc, ch]
+        stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
         masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
         
         dists = []
@@ -251,40 +252,41 @@ for f, file in enumerate(files):
             labs_rem.append(cell.label)
     
     
-    for lab in labs_rem:
-        CT_Casp3._del_cell(lab)
+    # for lab in labs_rem:
+    #     CT_Casp3._del_cell(lab)
     
     CT_Casp3.plot_tracking(plot_args=plot_args)
-    CT_Casp3.update_labels()
-    centers = []
-    for cell in CT_F3.jitcells:
-        centers.append(cell.centers[0])
+    # CT_Casp3.update_labels()
+    
+    # centers = []
+    # for cell in CT_F3.jitcells:
+    #     centers.append(cell.centers[0])
 
-    for cell in CT_A12.jitcells:
-        centers.append(cell.centers[0])
+    # for cell in CT_A12.jitcells:
+    #     centers.append(cell.centers[0])
 
-    centroid = np.mean(centers, axis=0)
+    # centroid = np.mean(centers, axis=0)
 
-    distsF3 = []
-    for cell in CT_F3.jitcells:
-        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
-        distsF3.append(dist)
+    # distsF3 = []
+    # for cell in CT_F3.jitcells:
+    #     dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+    #     distsF3.append(dist)
 
-    distsA12 = []
-    for cell in CT_A12.jitcells:
-        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
-        distsA12.append(dist)
+    # distsA12 = []
+    # for cell in CT_A12.jitcells:
+    #     dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+    #     distsA12.append(dist)
 
 
-    distsCasp3 = []
-    for cell in CT_Casp3.jitcells:
-        dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
-        distsCasp3.append(dist)
+    # distsCasp3 = []
+    # for cell in CT_Casp3.jitcells:
+    #     dist = compute_distance_xyz(centroid[0], cell.centers[0][0], centroid[1], cell.centers[0][1], centroid[2], cell.centers[0][2])
+    #     distsCasp3.append(dist)
 
-    CENTERS.append(centers)
-    DISTSF3.append(distsF3)
-    DISTSA12.append(distsA12)
-    DISTSCasp3.append(distsCasp3)
+    # CENTERS.append(centers)
+    # DISTSF3.append(distsF3)
+    # DISTSA12.append(distsA12)
+    # DISTSCasp3.append(distsCasp3)
 
 
 
@@ -372,11 +374,11 @@ for f, file in enumerate(files):
         
 #         continue
 
-for f, file in enumerate(files):
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.hist(DISTSF3[f], density=True, color="green", alpha=0.5)
-    ax.hist(DISTSA12[f], density=True, color="magenta", alpha=0.5)
-    ax.hist(DISTSCasp3[f], density=True, color="yellow", alpha=0.5)
-    plt.show()
+# for f, file in enumerate(files):
+#     import matplotlib.pyplot as plt
+#     fig, ax = plt.subplots()
+#     ax.hist(DISTSF3[f], density=True, color="green", alpha=0.5)
+#     ax.hist(DISTSA12[f], density=True, color="magenta", alpha=0.5)
+#     ax.hist(DISTSCasp3[f], density=True, color="yellow", alpha=0.5)
+#     plt.show()
 
