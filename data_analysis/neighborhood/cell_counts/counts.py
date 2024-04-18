@@ -164,7 +164,6 @@ for TIME in TIMES:
                 'min_outline_length':75,
             }
             
-            
 
             ### DEFINE ARGUMENTS ###
             segmentation_args={
