@@ -147,8 +147,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        # 'channels':[ch_A12, ch_F3, ch_Casp3],
-        'channels':[ch_Casp3],
+        'channels':[ch_A12, ch_F3, ch_Casp3],
+        # 'channels':[ch_Casp3],
         'min_outline_length':75,
     }
     

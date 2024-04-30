@@ -96,13 +96,6 @@ for TIME in TIMES:
     DISTS.append(dists)
     DISTS_apo.append(dists_apo)
     
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(10,5))
-n_hist, bins, patches = ax.hist(dists, color="grey", alpha=0.5, bins=30, label="TODAS", density=True)
-n_hist, bins, patches = ax.hist(dists_apo, color="yellow", alpha=0.5, bins=30, label="APO", density=True)
-ax.legend()
-plt.show()
-
 
 fig, ax = plt.subplots(figsize=(10,5))
 for t, TIME in enumerate(TIMES):
@@ -116,6 +109,10 @@ plt.show()
 
 import random
 from scipy.stats import ks_2samp
+
+t = 1
+dists = DISTS[t]
+dists_apo = DISTS_apo[t]
 
 sample_size = len(dists_apo)
 max_samples = np.floor(len(dists) / sample_size).astype("int32")

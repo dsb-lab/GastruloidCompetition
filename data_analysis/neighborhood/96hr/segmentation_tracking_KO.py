@@ -222,8 +222,22 @@ for f, file in enumerate(files):
         channels=chans
     )
     
-    CT_Casp3.run()
-    # CT_Casp3.plot_tracking(plot_args=plot_args)
+    CT_Casp3.load()
+
+    CT_Casp3.plot_tracking(plot_args=plot_args)
+
+    plot_args = {
+        'plot_layout': (1,1),
+        'plot_overlap': 1,
+        'masks_cmap': 'tab10',
+        # 'plot_stack_dims': (256, 256), 
+        'plot_centers':[True, True], # [Plot center as a dot, plot label on 3D center]
+        'channels':[ch_A12, ch_F3, ch_Casp3],
+        # 'channels':[ch_Casp3],
+        'min_outline_length':75,
+    }
+    
+    CT_Casp3.plot_tracking(plot_args=plot_args)
 
     import numpy as np
     from scipy import stats

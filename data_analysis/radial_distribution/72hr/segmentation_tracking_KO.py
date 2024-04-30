@@ -9,9 +9,9 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/72hr/WT/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/72hr/WT/'
-path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/72hr/WT/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/72hr/KO/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/72hr/KO/'
+path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/72hr/KO/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -34,7 +34,6 @@ dists_centroid_A12 = []
 dists_centroid_F3 = []
 
 for f, file in enumerate(files):
-    if f != 3: continue
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
     path_save = correct_path(path_save_dir+embcode)
@@ -148,8 +147,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch_A12, ch_F3, ch_Casp3],
-        # 'channels':[ch_Casp3],
+        # 'channels':[ch_A12, ch_F3, ch_Casp3],
+        'channels':[ch_Casp3],
         'min_outline_length':75,
     }
     
