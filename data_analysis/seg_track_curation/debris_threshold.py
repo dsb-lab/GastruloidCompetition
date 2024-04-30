@@ -2,13 +2,13 @@
 from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB
 from embdevtools import remove_small_cells, plot_cell_sizes, correct_path
 
-### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 
-# ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
+experiment_code = '2024_03_Casp3'
+
+### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 TIMES = ["48hr", "60hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
-path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/"
-
+path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/{}".format(experiment_code)
 F3_WT_total = []
 A12_WT_total = []
 
@@ -36,8 +36,8 @@ for TIME in TIMES:
         os.mkdir(path_figures_time)
             
     for COND in CONDS:
-        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2024_03_Casp3/stacks/{}/{}/'.format(TIME, COND)
-        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2024_03_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment_code, TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment_code,TIME, COND)
 
 
         try: 
@@ -54,6 +54,7 @@ for TIME in TIMES:
         LABS = []
 
         channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+
 
         total_cells = []
         true_cells  = []
@@ -103,7 +104,7 @@ for TIME in TIMES:
             CT_F3.load()
             # CT_F3.plot_tracking()
             total_cells.append(len(CT_F3.jitcells))
-            # plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], xlim=(0,200))
+            plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], xlim=(0,200))
             remove_small_cells(CT_F3, 35, update_labels=False)
             # plot_cell_sizes(CT_F3, bw=bws[f], bins=bins[f], xlim=(0,200))
             true_cells.append(len(CT_F3.jitcells))
@@ -158,7 +159,7 @@ for TIME in TIMES:
 
             CT_A12.load()
             total_cells.append(len(CT_A12.jitcells))
-            # plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], xlim=(0,400))
+            plot_cell_sizes(CT_A12, bw=bws[f], bins=bins[f], xlim=(0,400))
             remove_small_cells(CT_A12, 35, update_labels=False)
             true_cells.append(len(CT_A12.jitcells))
             debris.append(total_cells[-1] - true_cells[-1])

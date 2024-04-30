@@ -408,35 +408,35 @@ for cell in CT_Casp3.jitcells:
         continue
 
 
-    import numpy as np
-    from scipy import stats
-    labs_rem = []
-    for cell in CT_Casp3.jitcells:
-        cells.append(cell)
-        zc = int(cell.centers[0][0])
-        zcid = cell.zs[0].index(zc)
-        center2D = cell.centers[0][1:]
+    # import numpy as np
+    # from scipy import stats
+    # labs_rem = []
+    # for cell in CT_Casp3.jitcells:
+    #     cells.append(cell)
+    #     zc = int(cell.centers[0][0])
+    #     zcid = cell.zs[0].index(zc)
+    #     center2D = cell.centers[0][1:]
 
-        mask = cell.masks[0][zcid]
-        stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
-        masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
+    #     mask = cell.masks[0][zcid]
+    #     stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
+    #     masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
         
-        dists = []
-        vals = []
-        for point in mask:
-            dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
-            dists.append(dist)
-            val = stack[point[1], point[0]]
-            vals.append(val)
-        dists = np.array(dists)
-        vals  = np.array(vals)
-        idxs = np.where(dists < 8.0)[0]
+    #     dists = []
+    #     vals = []
+    #     for point in mask:
+    #         dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+    #         dists.append(dist)
+    #         val = stack[point[1], point[0]]
+    #         vals.append(val)
+    #     dists = np.array(dists)
+    #     vals  = np.array(vals)
+    #     idxs = np.where(dists < 8.0)[0]
         
-        dists = dists[idxs]
-        vals = vals[idxs]
-        slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
-        if slope < 0:
-            labs_rem.append(cell.label)
+    #     dists = dists[idxs]
+    #     vals = vals[idxs]
+    #     slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+    #     if slope < 0:
+    #         labs_rem.append(cell.label)
     
     
     # for lab in labs_rem:
