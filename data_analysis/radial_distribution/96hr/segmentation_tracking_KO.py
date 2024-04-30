@@ -254,6 +254,8 @@ for f, file in enumerate(files):
             contour_points3D.append(np.array([z, p[1], p[0]]))
     contour_points3D = np.array(contour_points3D)
 
+    print("got contours")
+    
     centers_Casp3 = []
     for cell in CT_Casp3.jitcells:
         centers_Casp3.append(cell.centers[0])
