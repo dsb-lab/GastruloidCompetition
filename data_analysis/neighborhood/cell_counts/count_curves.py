@@ -8,7 +8,7 @@ from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-TIMES = ["48hr", "60hr", "72hr", "96hr"]
+TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 
 F3_WT = []
@@ -19,13 +19,9 @@ A12_KO = []
 
 for TIME in TIMES:
     for COND in CONDS:
-        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2024_03_Casp3/stacks/{}/{}/'.format(TIME, COND)
-        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2024_03_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
 
-        if TIME != "96hr":
-            continue
-        if COND != "WT":
-            continue
         try: 
             files = get_file_names(path_save_dir)
         except: 
@@ -39,7 +35,10 @@ for TIME in TIMES:
         FATES = []
         LABS = []
 
+        # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
         channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+        if "96hr" in path_data_dir:
+            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
         F3_counts = []
         A12_counts = []
@@ -96,6 +95,7 @@ for TIME in TIMES:
             for _ch in range(len(channel_names)):
                 if _ch not in chans:
                     chans.append(_ch)
+                    
             CT_F3 = CellTracking(
                 path_data,
                 path_save,
@@ -108,7 +108,6 @@ for TIME in TIMES:
             )
 
             CT_F3.load()
-            CT_F3.plot_tracking()
             
             ch = channel_names.index("A12")
             batch_args = {
@@ -157,7 +156,7 @@ pth_save_fig = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/c
 
 import matplotlib.pyplot as plt
 
-time = [48, 60, 72, 96]
+time = [48, 72, 96]
 fig, ax = plt.subplots(1,2, sharey=True, figsize=(12, 6))
 
 ax[0].set_title("WT")

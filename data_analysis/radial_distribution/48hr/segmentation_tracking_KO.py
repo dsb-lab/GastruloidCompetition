@@ -133,7 +133,8 @@ for f, file in enumerate(files):
     )
 
     CT_A12.load()
-    CT_A12.plot_tracking()
+    print(CT_A12)
+    # CT_A12.plot_tracking()
     
     ch_Casp3 = channel_names.index("Casp3")
 

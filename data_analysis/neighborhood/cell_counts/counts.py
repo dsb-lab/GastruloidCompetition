@@ -15,7 +15,7 @@ except:
     os.mkdir(path_figures)
     
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-TIMES = ["48hr"]
+TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 for TIME in TIMES:
     path_figures_time = "{}{}/".format(path_figures, TIME)
@@ -151,9 +151,9 @@ for TIME in TIMES:
                 if _ch not in chans:
                     chans.append(_ch)
             batch_args = {
-                'name_format':"ch"+str(ch)+"_{}",
+                'name_format':"ch"+str(ch)+"_{}_early",
                 'extension':".tif",
-            }
+    }
             plot_args = {
                 'plot_layout': (1,1),
                 'plot_overlap': 1,
@@ -285,7 +285,7 @@ for TIME in TIMES:
             # for lab in cells_to_remove:
             #     CT_F3._del_cell(lab)
             
-            CT_F3.update_labels()
+            # CT_F3.update_labels()
 
             cells_to_remove = []
             for c, cell in enumerate(CT_A12.jitcells):
@@ -301,7 +301,7 @@ for TIME in TIMES:
             # for lab in cells_to_remove:
             #     CT_A12._del_cell(lab)
             
-            CT_A12.update_labels()
+            # CT_A12.update_labels()
 
             cells_to_remove = []
             for c, cell in enumerate(CT_Casp3.jitcells):
@@ -368,10 +368,10 @@ for TIME in TIMES:
                     labs_rem.append(cell.label)
             
             
-            for lab in labs_rem:
-                CT_Casp3._del_cell(lab)
+            # for lab in labs_rem:
+            #     CT_Casp3._del_cell(lab)
             
-            CT_Casp3.update_labels()
+            # CT_Casp3.update_labels()
             
 
             # CT_F3.plot_tracking()
