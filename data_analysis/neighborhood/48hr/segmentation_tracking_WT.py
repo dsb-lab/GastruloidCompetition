@@ -122,7 +122,7 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[1,0,ch],
+        'channels':[1,0, ch_F3],
         'min_outline_length':75,
     }
     
@@ -144,7 +144,7 @@ for f, file in enumerate(files):
     CT_F3.load()
     # CT_F3.plot_tracking()
     
-    ch = channel_names.index("A12")
+    ch_A12 = channel_names.index("A12")
     batch_args = {
         'name_format':"ch"+str(ch_A12)+"_{}",
         'extension':".tif",
@@ -248,7 +248,7 @@ for f, file in enumerate(files):
         center2D = cell.centers[0][1:]
 
         mask = cell.masks[0][zcid]
-        stack = CT_Casp3.hyperstack[0, zc, ch]
+        stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
         
         dists = []
         vals = []
