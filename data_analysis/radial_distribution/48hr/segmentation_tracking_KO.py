@@ -7,11 +7,27 @@ from scipy import stats
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
+from numba import njit
+
+@njit
+def compute_distance_xyz(p1, p2):
+    x1, y1, z1 = p1
+    x2, y2, z2 = p2
+    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
+    return dist
+
+@njit
+def compute_dists(points1, points2):
+    dists = np.zeros((len(points1), len(points2)))
+    for i, center in enumerate(points1):
+        for j, cont in enumerate(points2):
+            dists[i,j] = compute_distance_xyz(center, cont)
+    return dists
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
 path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'
-path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/48hr/KO/'
+path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/48hr/KO/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -139,7 +155,7 @@ for f, file in enumerate(files):
     ch_Casp3 = channel_names.index("Casp3")
 
     batch_args = {
-        'name_format':"ch"+str(ch_Casp3)+"_{}_early",
+        'name_format':"ch"+str(ch_Casp3)+"_{}_mid",
         'extension':".tif",
     }
     plot_args = {
@@ -177,7 +193,7 @@ for f, file in enumerate(files):
     )
     
     CT_Casp3.load()
-    CT_Casp3.plot_tracking(plot_args=plot_args)
+    # CT_Casp3.plot_tracking(plot_args=plot_args)
 
     points = []
     zs = []
@@ -244,7 +260,6 @@ for f, file in enumerate(files):
     ES(hyperstack_seg)
     # z = 21
     ES.plot_segmentation(0, 21)
-
     import numpy as np
     from skimage import measure
 
@@ -255,6 +270,8 @@ for f, file in enumerate(files):
             contour_points3D.append(np.array([z, p[1], p[0]]))
     contour_points3D = np.array(contour_points3D)
 
+    print("got contours")
+    
     centers_Casp3 = []
     for cell in CT_Casp3.jitcells:
         centers_Casp3.append(cell.centers[0])
@@ -275,34 +292,17 @@ for f, file in enumerate(files):
     centers_A12 = centers_A12*resolutions
     centers_F3 = centers_F3*resolutions
 
-    def compute_distance_xyz(p1, p2):
-        x1, y1, z1 = p1
-        x2, y2, z2 = p2
-        dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
-        return dist
+    print("got centers")
 
-    dists_Casp3 = np.zeros((len(centers_Casp3), len(contour_points3D)))
-    for i, center in enumerate(centers_Casp3):
-        for j, cont in enumerate(contour_points3D):
-            dists_Casp3[i,j] = compute_distance_xyz(center, cont)
-
-
+    dists_Casp3 = compute_dists(np.array(centers_Casp3), np.array(contour_points3D))
     closests_Casp3_ids = np.argmin(dists_Casp3, axis=1)
     closests_contour_points_Casp3 = np.array([contour_points3D[i] for i in closests_Casp3_ids])
 
-    dists_A12 = np.zeros((len(centers_A12), len(contour_points3D)))
-    for i, center in enumerate(centers_A12):
-        for j, cont in enumerate(contour_points3D):
-            dists_A12[i,j] = compute_distance_xyz(center, cont)
-
+    dists_A12 = compute_dists(np.array(centers_A12), np.array(contour_points3D))
     closests_A12_ids = np.argmin(dists_A12, axis=1)
     closests_contour_points_A12 = np.array([contour_points3D[i] for i in closests_A12_ids])
 
-    dists_F3 = np.zeros((len(centers_F3), len(contour_points3D)))
-    for i, center in enumerate(centers_F3):
-        for j, cont in enumerate(contour_points3D):
-            dists_F3[i,j] = compute_distance_xyz(center, cont)
-
+    dists_F3 = compute_dists(np.array(centers_F3), np.array(contour_points3D))
     closests_F3_ids = np.argmin(dists_F3, axis=1)
     closests_contour_points_F3 = np.array([contour_points3D[i] for i in closests_F3_ids])
 
@@ -334,30 +334,16 @@ for f, file in enumerate(files):
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1,2, figsize=(10,5))
 
-ax[0].hist(dists_contour_F3, color="green", alpha=0.5, bins=50, density=True)
-ax[0].hist(dists_contour_A12, color="magenta", alpha=0.5, bins=50, density=True)
-ax[0].hist(dists_contour_Casp3, color="yellow", bins=50, density=True)
+ax[0].hist(dists_contour_F3, color="green", alpha=0.5, bins=50)
+ax[0].hist(dists_contour_A12, color="magenta", alpha=0.5, bins=50)
+ax[0].hist(dists_contour_Casp3, color="yellow")
 ax[0].set_xlabel("distance to closest embryo border")
 ax[0].set_yticks([])
-ax[1].set_xscale("log")
-ax[1].set_yscale("log")
-ax[1].hist(dists_centroid_F3, color="green", alpha=0.5, bins=50, density=True)
-ax[1].hist(dists_centroid_A12, color="magenta", alpha=0.5, bins=50, density=True)
-ax[1].hist(dists_centroid_Casp3, color="yellow", bins=50, density=True)
+ax[1].hist(dists_centroid_F3, color="green", alpha=0.5, bins=50)
+ax[1].hist(dists_centroid_A12, color="magenta", alpha=0.5, bins=50)
+ax[1].hist(dists_centroid_Casp3, color="yellow")
 ax[1].set_xlim(0,100)
 ax[1].set_xlabel("distance to embryo centroid")
 ax[1].set_yticks([])
 plt.show()
 
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.hist(dists_contour_F3, color="green", alpha=0.5, bins=np.arange(0, 50, 5))
-ax.hist(dists_contour_A12, color="magenta", alpha=0.5, bins=np.arange(0, 50, 5))
-ax.hist(dists_contour_Casp3, color="yellow", bins=np.arange(0, 50, 5))
-ax.set_xscale("log")
-ax.set_yscale("log")
-ax.set_xlabel("distance to closest embryo border")
-ax.set_yticks([])
-
-plt.show()

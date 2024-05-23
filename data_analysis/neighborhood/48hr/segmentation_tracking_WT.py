@@ -146,7 +146,6 @@ for f, file in enumerate(files):
     # CT_F3.plot_tracking()
     
     ch_A12 = channel_names.index("A12")
-    ch_A12 = channel_names.index("A12")
     batch_args = {
         'name_format':"ch"+str(ch_A12)+"_{}",
         'extension':".tif",
@@ -218,8 +217,10 @@ for f, file in enumerate(files):
         batch_args=batch_args,
         channels=chans
     )
-    
+
+    if f == 0: continue    
     CT_Casp3.load()
+
     for lab in CT_Casp3.unique_labels:
         CT_Casp3._del_cell(lab)
         

@@ -70,8 +70,8 @@ for r, radius in enumerate(radiuses):
         dists_centroid.append(dist)
         
 
-    for point in points_contour:
-        print(compute_distance_xyz(point, centroid))
+    # for point in points_contour:
+    #     print(compute_distance_xyz(point, centroid))
     dists = np.array(dists_centroid) / (np.array(dists_centroid) + np.array(dists_contours))
     DISTS.append(dists)
     

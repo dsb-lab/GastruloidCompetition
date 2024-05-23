@@ -24,12 +24,10 @@ def compute_dists(points1, points2):
             dists[i,j] = compute_distance_xyz(center, cont)
     return dists
 
-
-
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/WT/'
 path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/96hr/WT/'
-path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/96hr/WT/'
+path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/96hr/WT/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -151,12 +149,13 @@ for f, file in enumerate(files):
     )
 
     CT_A12.load()
+    print(CT_A12)
     # CT_A12.plot_tracking()
     
     ch_Casp3 = channel_names.index("Casp3")
 
     batch_args = {
-        'name_format':"ch"+str(ch_Casp3)+"_{}_early",
+        'name_format':"ch"+str(ch_Casp3)+"_{}_mid",
         'extension':".tif",
     }
     plot_args = {
@@ -165,8 +164,8 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch_A12, ch_F3, ch_Casp3],
-        # 'channels':[ch_Casp3],
+        # 'channels':[ch_A12, ch_F3, ch_Casp3],
+        'channels':[ch_Casp3],
         'min_outline_length':75,
     }
     
@@ -243,7 +242,7 @@ for f, file in enumerate(files):
     hyperstack, metadata = tif_reader_5D(path_data)
     channels_seg = np.array([ch_A12, ch_F3, ch_Casp3])
     hyperstack_seg = np.sum(hyperstack[:,:,channels_seg, :, :].astype("int32"), axis=2)
-
+    print(hyperstack_seg.shape)
     ES = EmbryoSegmentation(
             hyperstack_seg,
             ksize=10,
@@ -259,9 +258,9 @@ for f, file in enumerate(files):
         )
 
     ES(hyperstack_seg)
-    # z = 21
-    # ES.plot_segmentation(0, 21)
-
+    z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
+    ES.plot_segmentation(0, z_plot)
+    
     import numpy as np
     from skimage import measure
 

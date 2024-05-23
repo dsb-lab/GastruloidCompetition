@@ -182,7 +182,7 @@ for f, file in enumerate(files):
     ch_Casp3 = channel_names.index("Casp3")
 
     batch_args = {
-        'name_format':"ch"+str(ch_Casp3)+"_{}_early",
+        'name_format':"ch"+str(ch_Casp3)+"_{}_mid",
         'extension':".tif",
     }
     plot_args = {
@@ -190,8 +190,8 @@ for f, file in enumerate(files):
         'plot_overlap': 1,
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
-        'plot_centers':[True, True], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch_A12, ch_F3, ch_Casp3],
+        'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
+        'channels':[1,0,ch_Casp3],
         'min_outline_length':75,
     }
     
@@ -219,43 +219,46 @@ for f, file in enumerate(files):
     )
     
     CT_Casp3.load()
-    # CT_Casp3.plot_tracking(plot_args=plot_args)
-
-    import numpy as np
-    from scipy import stats
-    labs_rem = []
-    for cell in CT_Casp3.jitcells:
-        cells.append(cell)
-        zc = int(cell.centers[0][0])
-        zcid = cell.zs[0].index(zc)
-        center2D = cell.centers[0][1:]
-
-        mask = cell.masks[0][zcid]
-        stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
-        masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
+    for lab in CT_Casp3.unique_labels:
+        CT_Casp3._del_cell(lab)
         
-        dists = []
-        vals = []
-        for point in mask:
-            dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
-            dists.append(dist)
-            val = stack[point[1], point[0]]
-            vals.append(val)
-        dists = np.array(dists)
-        vals  = np.array(vals)
-        idxs = np.where(dists < 8.0)[0]
+    CT_Casp3.plot_tracking(plot_args=plot_args)
+
+    # import numpy as np
+    # from scipy import stats
+    # labs_rem = []
+    # for cell in CT_Casp3.jitcells:
+    #     cells.append(cell)
+    #     zc = int(cell.centers[0][0])
+    #     zcid = cell.zs[0].index(zc)
+    #     center2D = cell.centers[0][1:]
+
+    #     mask = cell.masks[0][zcid]
+    #     stack = CT_Casp3.hyperstack[0, zc, ch_Casp3]
+    #     masks_fluo_values.append(stack[mask[:, 0], mask[:, 1]])
         
-        dists = dists[idxs]
-        vals = vals[idxs]
-        slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
-        if slope < 0:
-            labs_rem.append(cell.label)
+    #     dists = []
+    #     vals = []
+    #     for point in mask:
+    #         dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
+    #         dists.append(dist)
+    #         val = stack[point[1], point[0]]
+    #         vals.append(val)
+    #     dists = np.array(dists)
+    #     vals  = np.array(vals)
+    #     idxs = np.where(dists < 8.0)[0]
+        
+    #     dists = dists[idxs]
+    #     vals = vals[idxs]
+    #     slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
+    #     if slope < 0:
+    #         labs_rem.append(cell.label)
     
     
     # for lab in labs_rem:
     #     CT_Casp3._del_cell(lab)
     
-    CT_Casp3.plot_tracking(plot_args=plot_args)
+    # CT_Casp3.plot_tracking(plot_args=plot_args)
     # CT_Casp3.update_labels()
     
     # centers = []
