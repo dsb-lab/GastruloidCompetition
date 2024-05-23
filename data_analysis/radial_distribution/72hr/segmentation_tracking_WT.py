@@ -242,25 +242,28 @@ for f, file in enumerate(files):
     hyperstack, metadata = tif_reader_5D(path_data)
     channels_seg = np.array([ch_A12, ch_F3, ch_Casp3])
     hyperstack_seg = np.sum(hyperstack[:,:,channels_seg, :, :].astype("int32"), axis=2)
-
+    
+    z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
     ES = EmbryoSegmentation(
             hyperstack_seg,
-            ksize=10,
-            ksigma=50,
-            binths=5,
+            ksize=3,
+            ksigma=10,
+            binths=10,
             apply_biths_to_zrange_only=False,
-            checkerboard_size=30,
+            checkerboard_size=10,
             num_inter=100,
-            smoothing=10,
+            smoothing=20,
             trange=None,
             zrange=range(minz, maxz+1),
             mp_threads=None,
         )
 
     ES(hyperstack_seg)
-    z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
-    ES.plot_segmentation(0, z_plot)
-    
+    # ES.plot_segmentation(0, minz + 2)
+    # ES.plot_segmentation(0, z_plot)
+    # ES.plot_segmentation(0, maxz - 2)
+
+
     import numpy as np
     from skimage import measure
 
