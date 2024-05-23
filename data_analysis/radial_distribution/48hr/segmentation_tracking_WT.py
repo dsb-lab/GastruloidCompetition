@@ -258,8 +258,9 @@ for f, file in enumerate(files):
         )
 
     ES(hyperstack_seg)
-    # z = 21
-    ES.plot_segmentation(0, 21)
+    z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
+    ES.plot_segmentation(0, z_plot)
+    
     import numpy as np
     from skimage import measure
 
