@@ -182,7 +182,7 @@ for f, file in enumerate(files):
     ch_Casp3 = channel_names.index("Casp3")
 
     batch_args = {
-        'name_format':"ch"+str(ch_Casp3)+"_{}_early",
+        'name_format':"ch"+str(ch_Casp3)+"_{}_mid",
         'extension':".tif",
     }
     plot_args = {
@@ -191,7 +191,7 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[1,0,ch],
+        'channels':[1,0,ch_Casp3],
         'min_outline_length':75,
     }
     
@@ -219,6 +219,9 @@ for f, file in enumerate(files):
     )
     
     CT_Casp3.load()
+    for lab in CT_Casp3.unique_labels:
+        CT_Casp3._del_cell(lab)
+        
     CT_Casp3.plot_tracking(plot_args=plot_args)
 
     # import numpy as np

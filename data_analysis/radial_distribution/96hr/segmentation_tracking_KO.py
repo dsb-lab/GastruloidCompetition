@@ -117,7 +117,7 @@ for f, file in enumerate(files):
 
 
     CT_F3.load()
-    # CT_F3.plot_tracking()
+    CT_F3.plot_tracking()
     
     ch_A12 = channel_names.index("A12")
     batch_args = {
@@ -151,7 +151,7 @@ for f, file in enumerate(files):
     )
 
     CT_A12.load()
-    # CT_A12.plot_tracking()
+    CT_A12.plot_tracking()
     
     ch_Casp3 = channel_names.index("Casp3")
 
