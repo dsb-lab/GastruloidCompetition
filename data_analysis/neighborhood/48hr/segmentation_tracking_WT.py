@@ -146,6 +146,7 @@ for f, file in enumerate(files):
     # CT_F3.plot_tracking()
     
     ch_A12 = channel_names.index("A12")
+    ch_A12 = channel_names.index("A12")
     batch_args = {
         'name_format':"ch"+str(ch_A12)+"_{}",
         'extension':".tif",
