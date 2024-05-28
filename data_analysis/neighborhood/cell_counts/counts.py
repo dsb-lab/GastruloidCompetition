@@ -153,7 +153,7 @@ for TIME in TIMES:
             batch_args = {
                 'name_format':"ch"+str(ch)+"_{}_early",
                 'extension':".tif",
-    }
+        }
             plot_args = {
                 'plot_layout': (1,1),
                 'plot_overlap': 1,
@@ -187,13 +187,14 @@ for TIME in TIMES:
                 
             # CT_F3.plot_tracking()
             # CT_A12.plot_tracking()
-            # CT_Casp3.plot_tracking()
+            CT_Casp3.plot_tracking()
             
             import numpy as np
 
             ### CORRECT DISTRIBUTIONS ###
 
             centers = []
+            channels_centers = []
             F3_dist = []
             areas = []
             for cell in CT_F3.jitcells: 
@@ -202,6 +203,7 @@ for TIME in TIMES:
                     img = CT_F3.hyperstack[0,z, channel_names.index("F3")]
                     F3_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
                     areas.append(len(mask))
+                channels_centers.append("F3")
                 centers.append(cell.centers[0])
                     
             A12_dist = []
@@ -212,110 +214,10 @@ for TIME in TIMES:
                     img = CT_A12.hyperstack[0,z, channel_names.index("A12")]
                     A12_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
                 centers.append(cell.centers[0])
-            
-            def expand_contract_hull(outline, inc=-1):
-                newoutline = []
-                midpointx = (max(outline[:, 0]) + min(outline[:, 0])) / 2
-                midpointy = (max(outline[:, 1]) + min(outline[:, 1])) / 2
+                channels_centers.append("A12")
 
-                for p in outline:
-                    newp = [0, 0]
-
-                    # Get angle between point and center
-                    x = p[0] - midpointx
-                    y = p[1] - midpointy
-                    theta = np.arctan2(y, x)
-                    xinc = inc * np.cos(theta)
-                    yinc = inc * np.sin(theta)
-                    newp[0] = x + xinc + midpointx
-                    newp[1] = y + yinc + midpointy
-                    newoutline.append(newp)
-                return np.array(newoutline), midpointx, midpointy
-            
-            def inhull_Delaunay(hull, p):
-                """
-                Test if points in `p` are in `hull`
-
-                `p` should be a `NxK` coordinates of `N` points in `K` dimensions
-                `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
-                coordinates of `M` points in `K`dimensions for which Delaunay triangulation
-                will be computed
-                """
-
-                return hull.find_simplex(p) >= 0
-            
-            
-            from scipy.spatial import ConvexHull, Delaunay
-            centers = np.array(centers)
-            centers_order = np.argsort(centers[:,0])
-            new_centers = centers[centers_order]
-            uniquez = np.unique(new_centers[:,0])
-            hulls = []
-            used_zs = []
             area = np.mean(areas)
             dim = 2*np.sqrt(area/np.pi)
-            if TIME == "48hr":
-                inc = -1.*dim
-            elif TIME =="72hr":
-                inc = -1.2*dim
-            else:
-                inc = -1.6*dim
-            for z in uniquez:
-                if z in range(int(min(uniquez+3)),int(max(uniquez-3))):
-                    centers_z = centers[np.where(centers[:,0]==z)]
-                    if len(centers_z) >= 4:
-                        used_zs.append(z)
-                        hull = ConvexHull(centers_z[:, 1:])
-                        outline = centers_z[:, 1:][hull.vertices]
-                        outline_contracted, a, b = expand_contract_hull(outline, inc=inc)
-                        inner_hull = Delaunay(outline_contracted)
-                        hulls.append(inner_hull)
-                    
-            cells_to_remove = []
-            for c, cell in enumerate(CT_F3.jitcells):
-                center = cell.centers[0]
-                z = center[0]
-                if z not in used_zs:
-                    cells_to_remove.append(cell.label)
-                else:
-                    zid = used_zs.index(z) 
-                    if not inhull_Delaunay(hulls[zid], center[1:]):
-                        cells_to_remove.append(cell.label)
-                
-            # for lab in cells_to_remove:
-            #     CT_F3._del_cell(lab)
-            
-            # CT_F3.update_labels()
-
-            cells_to_remove = []
-            for c, cell in enumerate(CT_A12.jitcells):
-                center = cell.centers[0]
-                z = center[0]
-                if z not in used_zs:
-                    cells_to_remove.append(cell.label)
-                else:
-                    zid = used_zs.index(z) 
-                    if not inhull_Delaunay(hulls[zid], center[1:]):
-                        cells_to_remove.append(cell.label)
-                
-            # for lab in cells_to_remove:
-            #     CT_A12._del_cell(lab)
-            
-            # CT_A12.update_labels()
-
-            cells_to_remove = []
-            for c, cell in enumerate(CT_Casp3.jitcells):
-                center = cell.centers[0]
-                z = center[0]
-                if z not in used_zs:
-                    cells_to_remove.append(cell.label)
-                else:
-                    zid = used_zs.index(z) 
-                    if not inhull_Delaunay(hulls[zid], center[1:]):
-                        cells_to_remove.append(cell.label)
-                
-            # for lab in cells_to_remove:
-            #     CT_Casp3._del_cell(lab)
             
             import numpy as np
             from scipy import stats
@@ -340,43 +242,6 @@ for TIME in TIMES:
                 """
                 dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
                 return dist
-    
-            labs_rem = []
-            for cell in CT_Casp3.jitcells:
-                zc = int(cell.centers[0][0])
-                zcid = cell.zs[0].index(zc)
-                center2D = cell.centers[0][1:]
-
-                mask = cell.masks[0][zcid]
-                stack = CT_Casp3.hyperstack[0, zc, ch]
-                
-                dists = []
-                vals = []
-                for point in mask:
-                    dist = compute_distance_xy(center2D[0], point[0], center2D[1], point[1])
-                    dists.append(dist)
-                    val = stack[point[1], point[0]]
-                    vals.append(val)
-                dists = np.array(dists)
-                vals  = np.array(vals)
-                idxs = np.where(dists < 8.0)[0]
-                
-                dists = dists[idxs]
-                vals = vals[idxs]
-                slope, intercept, r_value, p_value, std_err = stats.linregress(dists,vals)
-                if slope < 0:
-                    labs_rem.append(cell.label)
-            
-            
-            # for lab in labs_rem:
-            #     CT_Casp3._del_cell(lab)
-            
-            # CT_Casp3.update_labels()
-            
-
-            # CT_F3.plot_tracking()
-            # CT_A12.plot_tracking()
-            # CT_Casp3.plot_tracking()
 
             ## Now contract the shape as much as we want. 
             F3_dist = np.array(F3_dist)
@@ -387,12 +252,6 @@ for TIME in TIMES:
                 A12_dist += mdiff
             else: 
                 F3_dist -= mdiff 
-                
-            # fig, ax = plt.subplots()
-            # _ = ax.hist(F3_dist, color=[0.9,0,0.9,0.5], bins=40, density=True, label="F3")
-            # _ = ax.hist(A12_dist, color=[0,0.8,0,0.5], bins=40, density=True, label="A12")
-            # plt.legend()
-            # plt.show()
             
             zres = CT_F3.metadata["Zresolution"]
             xyres = CT_F3.metadata["XYresolution"]
@@ -408,7 +267,7 @@ for TIME in TIMES:
                 
             Casp3_F3 = 0
             Casp3_A12 = 0
-            pre_casp3 = len(centers)
+            len_pre_casp3 = len(centers)
             for cell in CT_Casp3.jitcells:
                 casp3 = []
                 a12 = []
@@ -425,6 +284,7 @@ for TIME in TIMES:
                     f3.append(np.mean(img[mask[:,1], mask[:,0]]))
 
                 centers.append(cell.centers[0]*[zres, xyres, xyres])
+                channels_centers.append("F3")
 
                 zz = np.int64(cell.centers[0][0])
                 idx = cell.zs[0].index(zz)
@@ -475,12 +335,12 @@ for TIME in TIMES:
             #     neighs.append(neighs_p)
 
             from sklearn.neighbors import NearestNeighbors
-            nbrs = NearestNeighbors(n_neighbors=6, algorithm='ball_tree').fit(centers)
+            nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(centers)
             distances, neighs = nbrs.kneighbors(centers)
 
-            dist_th = (dim*xyres)*20.0 #microns
-            dist_th_near = (dim*xyres)*0.5
-
+            dist_th = (dim*xyres)*4.0 #microns
+            dist_th_near = (dim*xyres)*0.2
+            neighs_n = 4
             true_neighs = []
 
             for p, neigh_p in enumerate(neighs):
@@ -489,10 +349,10 @@ for TIME in TIMES:
                     dist = np.linalg.norm(centers[p]-centers[neigh])
                     if dist < dist_th:
                         if dist > dist_th_near:
-                            if neigh < pre_casp3:
+                            if neigh < len_pre_casp3:
                                 true_neigh_p.append(neigh)
+                    if len(true_neigh_p) == neighs_n: break
                 true_neighs.append(true_neigh_p)
-
             
             neighs_fates = []
             for p, neigh_p in enumerate(true_neighs):
@@ -501,7 +361,6 @@ for TIME in TIMES:
                 for neigh in neigh_p:
                     fts.append(fates[neigh])
                 neighs_fates.append(fts)
-
 
             neighs_n = [len(neighs_p) for neighs_p in true_neighs]
             neighs_n_A12 = [n for i,n in enumerate(neighs_n) if fates[i] == 1]
@@ -567,14 +426,14 @@ for TIME in TIMES:
         top_std = [np.std(neighs_fates_A12_sum[:,1]), np.std(neighs_fates_Casp3_A12_sum[:,1]), np.std(neighs_fates_F3_sum[:,1]), np.std(neighs_fates_Casp3_F3_sum[:,1])]
         ax.bar([1,2,3,4], top, bottom =bot, tick_label=["A12", "Casp3 - A12", "F3", "Casp3 - F3"], color="magenta", yerr=top_std, capsize=6)
         ax.set_ylabel("percentage of neighbors")
-        plt.savefig("{}{}.png".format(path_figures_time, COND))
+        plt.show()
+        # plt.savefig("{}{}.png".format(path_figures_time, COND))
 
         if True:
             print("A12", np.mean(neighs_fates_A12_sum, axis=0))
             print("Casp3 - A12", np.mean(neighs_fates_Casp3_A12_sum, axis=0))
             print("F3", np.mean(neighs_fates_F3_sum, axis=0))
             print("Casp3 - F3", np.mean(neighs_fates_Casp3_F3_sum, axis=0))
-
 
 
 

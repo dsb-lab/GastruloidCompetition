@@ -22,7 +22,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/WT/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/WT/'.format(TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
@@ -56,7 +56,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/KO/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/KO/'.format(TIME)
 
 
     ### GET FULL FILE NAME AND FILE CODE ###
@@ -91,7 +91,9 @@ for TIME in TIMES:
     dists_centroid = np.array([*dists_centroid_A12, *dists_centroid_F3])
 
     dists = dists_centroid / (dists_centroid + dists_contour)
+    dists = dists_contour
     dists_apo = np.array(dists_centroid_Casp3) / (np.array(dists_centroid_Casp3) + np.array(dists_contour_Casp3))
+    dists_apo = dists_contour_Casp3
 
     DISTS.append(dists)
     DISTS_apo.append(dists_apo)
@@ -109,7 +111,7 @@ plt.show()
 import random
 from scipy.stats import ks_2samp
 
-t = 2
+t=2
 dists = DISTS[t]
 dists_apo = DISTS_apo[t]
 

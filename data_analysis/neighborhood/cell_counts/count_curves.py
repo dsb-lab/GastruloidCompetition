@@ -194,32 +194,32 @@ ax[1].fill_between(time, A12_KO_means-A12_KO_stds, A12_KO_means+A12_KO_stds, alp
 plt.legend()
 plt.show()
 
-time = [48, 60, 72, 96]
-fig, ax = plt.subplots(1,2, figsize=(12, 6))
+# time = [48, 60, 72, 96]
+# fig, ax = plt.subplots(1,2, figsize=(12, 6))
 
 
-ax[0].set_title("F3")
-ax[1].set_title("A12")
+# ax[0].set_title("F3")
+# ax[1].set_title("A12")
 
-ax[0].set_xlabel("time (hr)")
-ax[1].set_xlabel("time (hr)")
+# ax[0].set_xlabel("time (hr)")
+# ax[1].set_xlabel("time (hr)")
 
-ax[0].set_ylabel("cell number")
-ax[1].set_ylabel("cell number")
+# ax[0].set_ylabel("cell number")
+# ax[1].set_ylabel("cell number")
 
-ax[0].plot(time, F3_WT_means, 'green', label="F3 - WT")
-ax[0].fill_between(time, F3_WT_means-F3_WT_stds, F3_WT_means+F3_WT_stds, alpha=0.1, color="green")
+# ax[0].plot(time, F3_WT_means, 'green', label="F3 - WT")
+# ax[0].fill_between(time, F3_WT_means-F3_WT_stds, F3_WT_means+F3_WT_stds, alpha=0.1, color="green")
 
-ax[0].plot(time, F3_KO_means, 'cyan', label="F3 - KO")
-ax[0].fill_between(time, F3_KO_means-F3_KO_stds, F3_KO_means+F3_KO_stds, alpha=0.1, color="cyan")
+# ax[0].plot(time, F3_KO_means, 'cyan', label="F3 - KO")
+# ax[0].fill_between(time, F3_KO_means-F3_KO_stds, F3_KO_means+F3_KO_stds, alpha=0.1, color="cyan")
 
-ax[1].plot(time, A12_WT_means, 'magenta', label="A12 - WT")
-ax[1].fill_between(time, A12_WT_means-A12_WT_stds, A12_WT_means+A12_WT_stds, alpha=0.1, color="magenta")
+# ax[1].plot(time, A12_WT_means, 'magenta', label="A12 - WT")
+# ax[1].fill_between(time, A12_WT_means-A12_WT_stds, A12_WT_means+A12_WT_stds, alpha=0.1, color="magenta")
 
-ax[1].plot(time, A12_KO_means, 'red', label="A12 - KO")
-ax[1].fill_between(time, A12_KO_means-A12_KO_stds, A12_KO_means+A12_KO_stds, alpha=0.1, color="red")
+# ax[1].plot(time, A12_KO_means, 'red', label="A12 - KO")
+# ax[1].fill_between(time, A12_KO_means-A12_KO_stds, A12_KO_means+A12_KO_stds, alpha=0.1, color="red")
 
-ax[0].legend()
-ax[1].legend()
+# ax[0].legend()
+# ax[1].legend()
 
-plt.show()
+# plt.show()
