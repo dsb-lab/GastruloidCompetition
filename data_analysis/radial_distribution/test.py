@@ -9,7 +9,8 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 DISTS = []
 DISTS_apo = []
-
+DISTS_CONT = []
+DISTS_CONT_apo = []
 TIMES = ["48hr", "72hr", "96hr"]
 for TIME in TIMES:
     dists_contour_Casp3 = []
@@ -91,27 +92,38 @@ for TIME in TIMES:
     dists_centroid = np.array([*dists_centroid_A12, *dists_centroid_F3])
 
     dists = dists_centroid / (dists_centroid + dists_contour)
-    dists = dists_contour
     dists_apo = np.array(dists_centroid_Casp3) / (np.array(dists_centroid_Casp3) + np.array(dists_contour_Casp3))
-    dists_apo = dists_contour_Casp3
 
     DISTS.append(dists)
+    DISTS_CONT.append(dists_contour)
     DISTS_apo.append(dists_apo)
+    DISTS_CONT_apo.append(dists_contour_Casp3)
 
-fig, ax = plt.subplots(figsize=(10,5))
+fig, ax = plt.subplots(2,3,figsize=(15,12))
 for t, TIME in enumerate(TIMES):
+    ax[0,t].set_title(TIME)
     dists = DISTS[t]
-    n_hist, bins, patches = ax.hist(dists, alpha=0.5, bins=30, label=TIME, density=True)
+    n_hist, bins, patches = ax[0,t].hist(dists, alpha=0.5, bins=30, label=TIME, density=True, color="grey")
     dists = DISTS_apo[t]
-    n_hist, bins, patches = ax.hist(dists, alpha=0.5, bins=30, label="{} apo".format(TIME), density=True)
-ax.legend()
-ax.set_xlabel("relative position on gastruloid")
+    n_hist, bins, patches = ax[0,t].hist(dists, alpha=0.5, bins=30, label="{} apo".format(TIME), density=True, color="yellow")
+    ax[0,t].set_xlabel("relative position on gastruloid")
+
+    ax[1,t].set_title(TIME)
+    dists = DISTS_CONT[t]
+    n_hist, bins, patches = ax[1,t].hist(dists, alpha=0.5, bins=30, label=TIME, density=True, color="grey")
+    dists = DISTS_CONT_apo[t]
+    n_hist, bins, patches = ax[1,t].hist(dists, alpha=0.5, bins=30, label="{} apo".format(TIME), density=True, color="yellow")
+    ax[1,t].set_xlabel("closest distance to edge")
+
+    ax[0,t].legend()
+    ax[1,t].legend()
+plt.tight_layout()
 plt.show()
 
 import random
 from scipy.stats import ks_2samp
 
-t=2
+t=1
 dists = DISTS[t]
 dists_apo = DISTS_apo[t]
 
@@ -140,6 +152,7 @@ fig, ax = plt.subplots(figsize=(10,5))
 n_hist, bins, patches = ax.hist(statistics, color="grey", alpha=0.5, bins=30, label="KS muestras")
 ax.vlines(statistic_casp3, 0, np.max(n_hist), label="KS APO") 
 ax.set_xlabel("KS statistic")
+ax.set_title("frac lower = {}".format(frac_lower))
 ax.legend()
 
 plt.show()

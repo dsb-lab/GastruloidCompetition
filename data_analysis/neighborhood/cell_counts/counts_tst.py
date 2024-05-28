@@ -18,7 +18,7 @@ except:
 TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 TIME = TIMES[0]
-COND = CONDS[0]
+COND = CONDS[1]
 
 path_figures_time = "{}{}/".format(path_figures, TIME)
 try: 
@@ -48,8 +48,8 @@ neighs_fates_A12_sum = np.zeros((len(files), 2))
 neighs_fates_Casp3_F3_sum = np.zeros((len(files), 2))
 neighs_fates_Casp3_A12_sum = np.zeros((len(files), 2))
 
-f = 0
-file = files[0]
+f = 2
+file = files[f]
 
 path_data = path_data_dir+file
 file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
@@ -344,18 +344,22 @@ nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(centers)
 distances, neighs = nbrs.kneighbors(centers)
 
 dist_th = (dim*xyres)*5.0 #microns
-dist_th_near = (dim*xyres)*0.2
+dist_th_near = (dim*xyres)*0.4
 neighs_n = 4
 true_neighs = []
+true_dists = []
 for p, neigh_p in enumerate(neighs):
     true_neigh_p = []
+    true_dists_p = []
     for neigh in neigh_p[1:]:
         dist = np.linalg.norm(centers[p]-centers[neigh])
         if dist < dist_th:
             if dist > dist_th_near:
                 if neigh < len_pre_casp3:
+                    true_dists_p.append(dist)
                     true_neigh_p.append(neigh)
         if len(true_neigh_p) == neighs_n: break
+    true_dists.append(true_dists_p)
     true_neighs.append(true_neigh_p)
 
 neighs_fates = []
@@ -369,12 +373,20 @@ for p, neigh_p in enumerate(true_neighs):
     neighs_fates.append(fts)
     neighs_labels.append(lbs)
 
-lab = 30
+lab = 50
+
+ch_F3 = channel_names.index("F3")
+ch_A12 = channel_names.index("A12")
+ch_Casp3 = channel_names.index("Casp3")
+
 
 if fates[lab] == 0:
     CT = CT_F3
+    chans = [ch_F3, ch_Casp3]
 elif fates[lab] == 1:
     CT = CT_A12
+    chans = [ch_A12, ch_Casp3]
+
 else: raise Exception
 
 label = labels[lab]
@@ -383,18 +395,43 @@ n_labs = [labels[l] for l in neighs if fates[l]==fates[lab]]
 
 cell = CT._get_cell(label)
 
-ch_F3 = channel_names.index("F3")
-ch_A12 = channel_names.index("A12")
-ch_Casp3 = channel_names.index("Casp3")
+
 plot_args = {
     'plot_layout': (1,1),
     'plot_overlap': 1,
     'masks_cmap': 'tab10',
     'plot_stack_dims': (512, 512), 
     'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-    'channels':[ch_Casp3],
+    'channels': chans,
     'min_outline_length':75,
 }
-CT.save_cells = False
-CT.plot_tracking(plot_args=plot_args, block_plot=False)
 
+# CT.save_cells = True
+# CT.plot_tracking(plot_args=plot_args, block_plot=False)
+# CT_Casp3.plot_tracking(plot_args=plot_args, block_plot=False)
+
+
+dists_F3 = []
+dists_A12 = []
+dists_Casp3_F3 = []
+dists_Casp3_A12 = []
+
+for n, dsts in enumerate(true_dists):
+    fate = fates[n]
+    if fate==0:
+        dists_F3 = [*dists_F3, *dsts]
+    elif fate==1:
+        dists_A12 = [*dists_A12, *dsts]
+    elif fate==2:
+        dists_Casp3_F3 = [*dists_Casp3_F3, *dsts]
+    elif fate==3:
+        dists_Casp3_A12 = [*dists_Casp3_A12, *dsts]
+
+import matplotlib.pyplot as plt
+
+plt.hist(dists_F3, bins=50, color="green", edgecolor="k", density=True, alpha=0.5)
+plt.hist(dists_A12, bins=50, color="magenta", edgecolor="k", density=True, alpha=0.5)
+plt.hist(dists_Casp3_F3, bins=50, color="cyan", edgecolor="green", density=True, alpha=0.5)
+plt.hist(dists_Casp3_A12, bins=50, color="red", edgecolor="magenta", density=True, alpha=0.5)
+
+plt.show()
