@@ -138,7 +138,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_F3.load()
+            # CT_F3.load()
             
             ch = channel_names.index("A12")
             batch_args = {
@@ -171,7 +171,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_A12.load()
+            # CT_A12.load()
 
             ch = channel_names.index("Casp3")
             chans = [ch]
@@ -179,7 +179,7 @@ for TIME in TIMES:
                 if _ch not in chans:
                     chans.append(_ch)
             batch_args = {
-                'name_format':"ch"+str(ch)+"_{}_early",
+                'name_format':"ch"+str(ch)+"_{}_late",
                 'extension':".tif",
             }
             plot_args = {
@@ -211,7 +211,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_Casp3.load()
+            CT_Casp3.run()
 
             plot_args = {
                 'plot_layout': (1,1),
