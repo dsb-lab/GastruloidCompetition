@@ -23,7 +23,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/WT/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/late_apoptosis/{}/WT/'.format(TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
@@ -57,7 +57,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/KO/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/late_apoptosis/{}/KO/'.format(TIME)
 
 
     ### GET FULL FILE NAME AND FILE CODE ###
@@ -99,6 +99,12 @@ for TIME in TIMES:
     DISTS_apo.append(dists_apo)
     DISTS_CONT_apo.append(dists_contour_Casp3)
 
+mean_dists = [np.mean(DISTS[t]) for t in range(len(TIMES))]
+mean_dists_apo = [np.mean(DISTS_apo[t]) for t in range(len(TIMES))]
+print()
+print(mean_dists)
+print(mean_dists_apo)
+
 fig, ax = plt.subplots(2,3,figsize=(15,12))
 for t, TIME in enumerate(TIMES):
     ax[0,t].set_title(TIME)
@@ -124,7 +130,7 @@ import random
 from scipy.stats import ks_2samp
 
 import matplotlib.pyplot as plt
-fig, ax = plt.subplots(1,3,figsize=(15,12))
+fig, ax = plt.subplots(1,3,figsize=(15,10))
 for t, TIME in enumerate(TIMES):
     dists = DISTS[t]
     dists_apo = DISTS_apo[t]
@@ -138,7 +144,7 @@ for t, TIME in enumerate(TIMES):
             samp = random.sample(list(dists), sample_size)
             ks_dist = ks_2samp(dists, samp)
             KS_dists.append(ks_dist)
-    statistics = [ks.statistic for ks in KS_dists]
+    statistics = np.array([ks.statistic for ks in KS_dists])
 
     casp3_sample = random.sample(list(dists_apo), sample_size)
 

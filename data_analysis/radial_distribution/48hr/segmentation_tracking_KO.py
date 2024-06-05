@@ -25,6 +25,7 @@ def compute_dists(points1, points2):
     return dists
 
 apo_stages = ["early", "mid", "late"]
+conditions = ["WT", "KO"]
 for apo_stage in apo_stages:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'

@@ -404,4 +404,3 @@ ax[1,1].legend()
 ax[0,1].legend()
 
 plt.show()
-
