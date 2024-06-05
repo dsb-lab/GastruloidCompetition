@@ -23,7 +23,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/WT/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/WT/'.format(TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
@@ -57,7 +57,7 @@ for TIME in TIMES:
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
     path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/KO/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/mid_apoptosis/{}/KO/'.format(TIME)
 
 
     ### GET FULL FILE NAME AND FILE CODE ###
@@ -123,38 +123,39 @@ plt.show()
 import random
 from scipy.stats import ks_2samp
 
-t=1
-dists = DISTS[t]
-dists_apo = DISTS_apo[t]
-
-sample_size = len(dists_apo)
-max_samples = np.floor(len(dists) / sample_size).astype("int32")
-
-KS_dists = []
-for n in range(100):
-    for s in range(max_samples):
-        samp = random.sample(list(dists), sample_size)
-        ks_dist = ks_2samp(dists, samp)
-        KS_dists.append(ks_dist)
-statistics = [ks.statistic for ks in KS_dists]
-
-casp3_sample = random.sample(list(dists_apo), sample_size)
-
-ks_casp3 = ks_2samp(dists, casp3_sample)
-statistic_casp3 = ks_casp3.statistic
-
-total_kss = len(statistics)
-frac_lower = np.sum(np.array(statistics < ks_casp3.statistic))/total_kss
-
-
 import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(10,5))
-n_hist, bins, patches = ax.hist(statistics, color="grey", alpha=0.5, bins=30, label="KS muestras")
-ax.vlines(statistic_casp3, 0, np.max(n_hist), label="KS APO") 
-ax.set_xlabel("KS statistic")
-ax.set_title("frac lower = {}".format(frac_lower))
-ax.legend()
+fig, ax = plt.subplots(1,3,figsize=(15,12))
+for t, TIME in enumerate(TIMES):
+    dists = DISTS[t]
+    dists_apo = DISTS_apo[t]
 
+    sample_size = len(dists_apo)
+    max_samples = np.floor(len(dists) / sample_size).astype("int32")
+
+    KS_dists = []
+    for n in range(100):
+        for s in range(max_samples):
+            samp = random.sample(list(dists), sample_size)
+            ks_dist = ks_2samp(dists, samp)
+            KS_dists.append(ks_dist)
+    statistics = [ks.statistic for ks in KS_dists]
+
+    casp3_sample = random.sample(list(dists_apo), sample_size)
+
+    ks_casp3 = ks_2samp(dists, casp3_sample)
+    statistic_casp3 = ks_casp3.statistic
+
+    total_kss = len(statistics)
+    frac_lower = np.sum(np.array(statistics < ks_casp3.statistic))/total_kss
+
+
+    n_hist, bins, patches = ax[t].hist(statistics, color="grey", alpha=0.5, bins=30, label="KS muestras")
+    ax[t].vlines(statistic_casp3, 0, np.max(n_hist), label="KS APO") 
+    ax[t].set_xlabel("KS statistic")
+    ax[t].set_title("{} , frac lower = {:0.4f}".format(TIME, frac_lower))
+    ax[t].legend()
+
+plt.tight_layout()
 plt.show()
 
 
@@ -173,6 +174,23 @@ ax[1].hist(dists_centroid_Casp3, color="yellow", bins=50, density=True)
 ax[1].set_xlim(0,100)
 ax[1].set_xlabel("distance to embryo centroid")
 ax[1].set_yticks([])
+plt.show()
+
+fig, ax = plt.subplots(2,figsize=(15,12))
+for t, TIME in enumerate(TIMES):
+    ax[0].set_title("All")
+    dists = DISTS[t]
+    n_hist, bins, patches = ax[0].hist(dists, alpha=0.5, bins=30, label=TIME, density=True)
+    ax[0].set_xlabel("relative position on gastruloid")
+
+    ax[1].set_title("Apo")
+    dists = DISTS_apo[t]
+    n_hist, bins, patches = ax[1].hist(dists, alpha=0.5, bins=30, label="{} apo".format(TIME), density=True)
+    ax[1].set_xlabel("relative position on gastruloid")
+
+    ax[0].legend()
+    ax[1].legend()
+plt.tight_layout()
 plt.show()
 
 # import matplotlib.pyplot as plt

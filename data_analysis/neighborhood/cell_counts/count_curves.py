@@ -211,7 +211,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_Casp3.run()
+            CT_Casp3.load()
 
             plot_args = {
                 'plot_layout': (1,1),
@@ -225,6 +225,7 @@ for TIME in TIMES:
 
             CT_Casp3.plot_tracking(plot_args=plot_args)
 
+            
             F3_counts.append(len(CT_F3.jitcells))
             A12_counts.append(len(CT_A12.jitcells))
 

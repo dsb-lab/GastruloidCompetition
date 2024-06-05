@@ -49,6 +49,7 @@ dists_centroid_Casp3 = []
 dists_centroid_A12 = []
 dists_centroid_F3 = []
 
+binths = [6,10,10,10]
 for f, file in enumerate(files):
     path_data = path_data_dir+file
     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
@@ -245,9 +246,9 @@ for f, file in enumerate(files):
     z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
     ES = EmbryoSegmentation(
             hyperstack_seg,
-            ksize=3,
-            ksigma=10,
-            binths=10,
+            ksize=5,
+            ksigma=30,
+            binths=binths[f],
             apply_biths_to_zrange_only=False,
             checkerboard_size=10,
             num_inter=100,
