@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
-for apo_stage in ["early", "mid"]:
+for apo_stage in ["early", "mid", "late"]:
 
     path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/neighbors/{}/".format(apo_stage)
     try: 
@@ -18,9 +18,7 @@ for apo_stage in ["early", "mid"]:
         
     # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     TIMES = ["48hr", "72hr", "96hr"]
-    TIMES = ["72hr"]
     CONDS = ["WT", "KO"]
-    CONDS = ["KO"]
     for TIME in TIMES:
         path_figures_time = "{}{}/".format(path_figures, TIME)
         try: 
@@ -33,8 +31,7 @@ for apo_stage in ["early", "mid"]:
             path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
             path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
             
-            # for number_of_neighs in [4, 7, 10, 15]:
-            for number_of_neighs in [7]:
+            for number_of_neighs in [4, 7, 10, 15]:
 
                 try: 
                     files = get_file_names(path_save_dir)
@@ -472,3 +469,4 @@ for apo_stage in ["early", "mid"]:
                     print("Casp3 - F3", np.mean(neighs_fates_Casp3_F3_sum, axis=0))
 
 
+plt.show()

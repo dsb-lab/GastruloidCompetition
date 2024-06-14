@@ -35,6 +35,7 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 experiment = "2023_11_17_Casp3"
 TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
+stage = "late"
 
 F3_WT = []
 A12_WT = []
@@ -138,7 +139,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            # CT_F3.load()
+            CT_F3.load()
             
             ch = channel_names.index("A12")
             batch_args = {
@@ -171,7 +172,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            # CT_A12.load()
+            CT_A12.load()
 
             ch = channel_names.index("Casp3")
             chans = [ch]
@@ -179,7 +180,7 @@ for TIME in TIMES:
                 if _ch not in chans:
                     chans.append(_ch)
             batch_args = {
-                'name_format':"ch"+str(ch)+"_{}_late",
+                'name_format':"ch"+str(ch)+"_{}_"+stage,
                 'extension':".tif",
             }
             plot_args = {
@@ -223,7 +224,7 @@ for TIME in TIMES:
                 'min_outline_length':75,
             }
 
-            CT_Casp3.plot_tracking(plot_args=plot_args)
+            # CT_Casp3.plot_tracking(plot_args=plot_args)
 
             
             F3_counts.append(len(CT_F3.jitcells))
@@ -327,12 +328,13 @@ for TIME in TIMES:
             Casp3_F3_KO.append(Casp3_F3_counts)
             Casp3_A12_KO.append(Casp3_A12_counts)
 
-pth_save_fig = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/counts/"
+pth_save_fig = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/counts/{}.png".format(stage)
 
 import matplotlib.pyplot as plt
 
 time = [48, 72, 96]
 fig, ax = plt.subplots(2,2, sharex=True, figsize=(12, 6))
+
 
 ax[0,0].set_title("WT")
 ax[0,1].set_title("KO")
@@ -403,4 +405,22 @@ ax[1,1].fill_between(time, Casp3_A12_KO_means-Casp3_A12_KO_stds, Casp3_A12_KO_me
 ax[1,1].legend()
 ax[0,1].legend()
 
+maxF3 = np.maximum(np.max(F3_WT_means+F3_WT_stds), np.max(F3_KO_means+F3_KO_stds))
+maxA12 = np.maximum(np.max(A12_WT_means+A12_WT_stds), np.max(A12_KO_means+A12_KO_stds))
+max_lim = np.maximum(maxF3, maxA12)
+
+ax[0,0].set_ylim(0, max_lim)
+ax[0,1].set_ylim(0, max_lim)
+
+
+maxF3 = np.maximum(np.max(Casp3_F3_WT_means+Casp3_F3_WT_stds), np.max(Casp3_F3_KO_means+Casp3_F3_KO_stds))
+maxA12 = np.maximum(np.max(Casp3_A12_WT_means+Casp3_A12_WT_stds), np.max(Casp3_A12_KO_means+Casp3_A12_KO_stds))
+max_lim = np.maximum(maxF3, maxA12)
+
+ax[1,0].set_ylim(0, max_lim)
+ax[1,1].set_ylim(0, max_lim)
+
+
+plt.savefig(pth_save_fig)
 plt.show()
+
