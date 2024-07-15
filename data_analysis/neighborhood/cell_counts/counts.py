@@ -6,9 +6,12 @@ import matplotlib.pyplot as plt
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
-
-for apo_stage in ["early", "mid", "late"]:
-
+densities_F3_all = [[[], [], []], [[], [], []]]
+densities_A12_all = [[[], [], []], [[], [], []]]
+densities_F3_all_apo = [[[], [], []], [[], [], []]]
+densities_A12_all_apo = [[[], [], []], [[], [], []]]
+gastruloid_sizes = [[[], [], []], [[], [], []]]
+for apo_stage in ["early"]:
     path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/neighbors/{}/".format(apo_stage)
     try: 
         files = get_file_names(path_figures)
@@ -19,7 +22,8 @@ for apo_stage in ["early", "mid", "late"]:
     # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
     TIMES = ["48hr", "72hr", "96hr"]
     CONDS = ["WT", "KO"]
-    for TIME in TIMES:
+    
+    for TTT, TIME in enumerate(TIMES):
         path_figures_time = "{}{}/".format(path_figures, TIME)
         try: 
             files = get_file_names(path_figures_time)
@@ -27,11 +31,11 @@ for apo_stage in ["early", "mid", "late"]:
             import os
             os.mkdir(path_figures_time)
                 
-        for COND in CONDS:
+        for CCC, COND in enumerate(CONDS):
             path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
             path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
             
-            for number_of_neighs in [4, 7, 10, 15]:
+            for number_of_neighs in [10]:
 
                 try: 
                     files = get_file_names(path_save_dir)
@@ -345,7 +349,7 @@ for apo_stage in ["early", "mid", "late"]:
                     #     neighs.append(neighs_p)
 
                     from sklearn.neighbors import NearestNeighbors
-                    nbrs = NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(centers)
+                    nbrs = NearestNeighbors(n_neighbors=number_of_neighs+1, algorithm='ball_tree').fit(centers)
                     distances, neighs = nbrs.kneighbors(centers)
 
                     dist_th = (dim*xyres)*5.0 #microns
@@ -441,6 +445,12 @@ for apo_stage in ["early", "mid", "late"]:
                     densities_F3_apo = [*densities_F3_apo, *_densities_F3_apo]
                     densities_A12_apo = [*densities_A12_apo, *_densities_A12_apo]
 
+                densities_F3_all[CCC][TTT] = [*densities_F3_all[CCC][TTT], *densities_F3]
+                densities_A12_all[CCC][TTT] = [*densities_A12_all[CCC][TTT], *densities_A12]
+                densities_F3_all_apo[CCC][TTT] = [*densities_F3_all_apo[CCC][TTT], *densities_F3_apo]
+                densities_A12_all_apo[CCC][TTT] = [*densities_A12_all_apo[CCC][TTT], *densities_A12_apo]
+                gastruloid_sizes[CCC][TTT] = [*gastruloid_sizes[CCC][TTT], len(centers)]
+
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots()
                 bot = [np.mean(neighs_fates_A12_sum[:,0]), np.mean(neighs_fates_Casp3_A12_sum[:,0]), np.mean(neighs_fates_F3_sum[:,0]), np.mean(neighs_fates_Casp3_F3_sum[:,0])]
@@ -469,4 +479,216 @@ for apo_stage in ["early", "mid", "late"]:
                     print("Casp3 - F3", np.mean(neighs_fates_Casp3_F3_sum, axis=0))
 
 
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=14) 
+mpl.rc('axes', labelsize=14) 
+mpl.rc('xtick', labelsize=14) 
+mpl.rc('ytick', labelsize=14) 
+mpl.rc('legend', fontsize=14) 
+
+
+alpha=0.3
+fig, ax = plt.subplots(2,3, figsize=(16,8), sharex=True)
+
+fig.suptitle("EARLY apoptotis")
+ax[0,0].set_title("WT - WT 48hr")
+ax[0,0].hist(densities_F3_all[0][0], color="green", bins=50, alpha=alpha)
+ax[0,0].hist(densities_A12_all[0][0], color="magenta", bins=50, alpha=alpha)
+ax[0,0].axvline(np.nanmean(densities_F3_all_apo[0][0]), color="green", lw=3, ls='--')
+ax[0,0].axvline(np.nanmean(densities_A12_all_apo[0][0]), color="purple", lw=3, ls='--')
+ax[0,0].axvline(np.nanmean(densities_F3_all[0][0]), color="green", lw=2)
+ax[0,0].axvline(np.nanmean(densities_A12_all[0][0]), color="purple", lw=2)
+
+ax[0,1].set_title("WT - WT 72hr")
+ax[0,1].hist(densities_F3_all[0][1], color="green", bins=50, alpha=alpha)
+ax[0,1].hist(densities_A12_all[0][1], color="magenta", bins=50, alpha=alpha)
+ax[0,1].axvline(np.nanmean(densities_F3_all_apo[0][1]), color="green", lw=3, ls='--')
+ax[0,1].axvline(np.nanmean(densities_A12_all_apo[0][1]), color="purple", lw=3, ls='--')
+ax[0,1].axvline(np.nanmean(densities_F3_all[0][1]), color="green", lw=2)
+ax[0,1].axvline(np.nanmean(densities_A12_all[0][1]), color="purple", lw=2)
+
+ax[0,2].set_title("WT - WT 96hr")
+ax[0,2].hist(densities_F3_all[0][2], color="green", bins=50, alpha=alpha, label="F3 - WT")
+ax[0,2].hist(densities_A12_all[0][2], color="magenta", bins=50, alpha=alpha, label="A12 - WT")
+ax[0,2].axvline(np.nanmean(densities_F3_all_apo[0][2]), color="green", lw=3, ls='--', label="F3 apo - WT")
+ax[0,2].axvline(np.nanmean(densities_A12_all_apo[0][2]), color="purple", lw=3, ls='--', label="A12 apo - WT")
+ax[0,2].axvline(np.nanmean(densities_F3_all[0][2]), color="green", lw=2, label="F3 - WT")
+ax[0,2].axvline(np.nanmean(densities_A12_all[0][2]), color="purple", lw=2, label="A12 - WT")
+ax[0,2].legend()
+
+ax[1,0].set_title("WT - KO 48hr")
+ax[1,0].hist(densities_F3_all[1][0], color="cyan", bins=50, alpha=alpha)
+ax[1,0].hist(densities_A12_all[1][0], color="red", bins=50, alpha=alpha)
+ax[1,0].axvline(np.nanmean(densities_F3_all[1][0]), color="blue", lw=2)
+ax[1,0].axvline(np.nanmean(densities_A12_all[1][0]), color="red", lw=2)
+ax[1,0].axvline(np.nanmean(densities_F3_all_apo[1][0]), color="blue", lw=3, ls='--')
+ax[1,0].axvline(np.nanmean(densities_A12_all_apo[1][0]), color="red", lw=3, ls='--')
+
+ax[1,1].set_title("WT - KO 72hr")
+ax[1,1].hist(densities_F3_all[1][1], color="cyan", bins=50, alpha=alpha)
+ax[1,1].hist(densities_A12_all[1][1], color="red", bins=50, alpha=alpha)
+ax[1,1].axvline(np.nanmean(densities_F3_all[1][1]), color="blue", lw=2)
+ax[1,1].axvline(np.nanmean(densities_A12_all[1][1]), color="red", lw=2)
+ax[1,1].axvline(np.nanmean(densities_F3_all_apo[1][1]), color="blue", lw=3, ls='--')
+ax[1,1].axvline(np.nanmean(densities_A12_all_apo[1][1]), color="red", lw=3, ls='--')
+
+ax[1,2].set_title("WT - KO 96hr")
+ax[1,2].hist(densities_F3_all[1][2], color="cyan", bins=50, alpha=alpha, label="F3 - KO")
+ax[1,2].hist(densities_A12_all[1][2], color="red", bins=50, alpha=alpha, label="A12 - KO")
+ax[1,2].axvline(np.nanmean(densities_F3_all[1][2]), color="blue", lw=2, label="F3 - KO")
+ax[1,2].axvline(np.nanmean(densities_A12_all[1][2]), color="red", lw=2, label="A12 - KO")
+ax[1,2].axvline(np.nanmean(densities_F3_all_apo[1][2]), color="blue", lw=3, label="F3 apo - KO", ls='--')
+ax[1,2].axvline(np.nanmean(densities_A12_all_apo[1][2]), color="red", lw=3, label="A12 apo - KO", ls='--')
+ax[1,2].legend()
+
 plt.show()
+
+# np.nanmean(densities_F3_all[1])
+# np.nanmean(densities_F3_all[1])
+
+# alpha=0.3
+# fig, ax = plt.subplots(2,3, figsize=(14,7), sharex=True)
+# fig.suptitle("EARLY apoptotis")
+
+# ax[0,0].set_title("F3 - F3 48hr")
+# ax[0,0].hist(densities_F3_all[0][0], color="green", bins=50, alpha=alpha)
+# ax[0,0].hist(densities_F3_all[1][0], color="cyan", bins=50, alpha=alpha)
+# ax[0,0].axvline(np.nanmean(densities_F3_all_apo[0][0]), color="green", lw=3)
+# ax[0,0].axvline(np.nanmean(densities_F3_all_apo[1][0]), color="blue", lw=3)
+
+# ax[0,1].set_title("F3 - F3 72hr")
+# ax[0,1].hist(densities_F3_all[0][1], color="green", bins=50, alpha=alpha)
+# ax[0,1].hist(densities_F3_all[1][1], color="cyan", bins=50, alpha=alpha)
+# ax[0,1].axvline(np.nanmean(densities_F3_all_apo[0][1]), color="green", lw=3)
+# ax[0,1].axvline(np.nanmean(densities_F3_all_apo[1][1]), color="blue", lw=3)
+
+# ax[0,2].set_title("F3 - F3 96hr")
+# ax[0,2].hist(densities_F3_all[0][2], color="green", bins=50, alpha=alpha, label="F3 - WT")
+# ax[0,2].hist(densities_F3_all[1][2], color="cyan", bins=50, alpha=alpha, label="F3 - KO")
+# ax[0,2].axvline(np.nanmean(densities_F3_all_apo[0][2]), color="green", lw=3, label="F3 apo - WT")
+# ax[0,2].axvline(np.nanmean(densities_F3_all_apo[1][2]), color="blue", lw=3, label="F3 apo - KO")
+# ax[0,2].legend()
+
+# ax[1,0].set_title("A12 - A12 48hr")
+# ax[1,0].hist(densities_A12_all[1][0], color="red", bins=50, alpha=alpha)
+# ax[1,0].hist(densities_A12_all[0][0], color="magenta", bins=50, alpha=alpha)
+# ax[1,0].axvline(np.nanmean(densities_A12_all_apo[0][0]), color="purple", lw=3)
+# ax[1,0].axvline(np.nanmean(densities_A12_all_apo[1][0]), color="red", lw=3)
+
+# ax[1,1].set_title("A12 - A12 72hr")
+# ax[1,1].hist(densities_A12_all[1][1], color="red", bins=50, alpha=alpha)
+# ax[1,1].hist(densities_A12_all[0][1], color="magenta", bins=50, alpha=alpha)
+# ax[1,1].axvline(np.nanmean(densities_A12_all_apo[0][1]), color="purple", lw=3)
+# ax[1,1].axvline(np.nanmean(densities_A12_all_apo[1][1]), color="red", lw=3)
+
+# ax[1,2].set_title("A12 - A12 96hr")
+# ax[1,2].hist(densities_A12_all[0][2], color="magenta", bins=50, alpha=alpha, label="A12 - WT")
+# ax[1,2].hist(densities_A12_all[1][2], color="red", bins=50, alpha=alpha, label="A12 - KO")
+# ax[1,2].axvline(np.nanmean(densities_A12_all_apo[0][2]), color="purple", lw=3, label="A12 apo - WT")
+# ax[1,2].axvline(np.nanmean(densities_A12_all_apo[1][2]), color="red", lw=3, label="A12 apo - KO")
+# ax[1,2].legend()
+
+# plt.show()
+
+fig, ax = plt.subplots(2,3, figsize=(16,8), sharex=True)
+
+fig.suptitle("EARLY apoptotis")
+ax[0,0].set_title("F3 - F3 48hr")
+ax[0,0].hist(densities_F3_all[0][0], color="green", bins=50, alpha=alpha)
+ax[1,0].hist(densities_A12_all[0][0], color="magenta", bins=50, alpha=alpha)
+ax[0,0].axvline(np.nanmean(densities_F3_all_apo[0][0]), color="green", lw=3, ls='--')
+ax[1,0].axvline(np.nanmean(densities_A12_all_apo[0][0]), color="purple", lw=3, ls='--')
+ax[0,0].axvline(np.nanmean(densities_F3_all[0][0]), color="green", lw=2)
+ax[1,0].axvline(np.nanmean(densities_A12_all[0][0]), color="purple", lw=2)
+
+ax[0,1].set_title("F3 - F3 72hr")
+ax[0,1].hist(densities_F3_all[0][1], color="green", bins=50, alpha=alpha)
+ax[1,1].hist(densities_A12_all[0][1], color="magenta", bins=50, alpha=alpha)
+ax[0,1].axvline(np.nanmean(densities_F3_all_apo[0][1]), color="green", lw=3, ls='--')
+ax[1,1].axvline(np.nanmean(densities_A12_all_apo[0][1]), color="purple", lw=3, ls='--')
+ax[0,1].axvline(np.nanmean(densities_F3_all[0][1]), color="green", lw=2)
+ax[1,1].axvline(np.nanmean(densities_A12_all[0][1]), color="purple", lw=2)
+
+ax[0,2].set_title("F3 - F3 96hr")
+ax[0,2].hist(densities_F3_all[0][2], color="green", bins=50, alpha=alpha, label="F3 - WT")
+ax[1,2].hist(densities_A12_all[0][2], color="magenta", bins=50, alpha=alpha, label="A12 - WT")
+ax[0,2].axvline(np.nanmean(densities_F3_all_apo[0][2]), color="green", lw=3, ls='--', label="F3 apo - WT")
+ax[1,2].axvline(np.nanmean(densities_A12_all_apo[0][2]), color="purple", lw=3, ls='--', label="A12 apo - WT")
+ax[0,2].axvline(np.nanmean(densities_F3_all[0][2]), color="green", lw=2, label="F3 - WT")
+ax[1,2].axvline(np.nanmean(densities_A12_all[0][2]), color="purple", lw=2, label="A12 - WT")
+
+ax[1,0].set_title("A12 - A12 48hr")
+ax[0,0].hist(densities_F3_all[1][0], color="cyan", bins=50, alpha=alpha)
+ax[1,0].hist(densities_A12_all[1][0], color="red", bins=50, alpha=alpha)
+ax[0,0].axvline(np.nanmean(densities_F3_all[1][0]), color="blue", lw=2)
+ax[1,0].axvline(np.nanmean(densities_A12_all[1][0]), color="red", lw=2)
+ax[0,0].axvline(np.nanmean(densities_F3_all_apo[1][0]), color="blue", lw=3, ls='--')
+ax[1,0].axvline(np.nanmean(densities_A12_all_apo[1][0]), color="red", lw=3, ls='--')
+
+ax[1,1].set_title("A12 - A12 72hr")
+ax[0,1].hist(densities_F3_all[1][1], color="cyan", bins=50, alpha=alpha)
+ax[1,1].hist(densities_A12_all[1][1], color="red", bins=50, alpha=alpha)
+ax[0,1].axvline(np.nanmean(densities_F3_all[1][1]), color="blue", lw=2)
+ax[1,1].axvline(np.nanmean(densities_A12_all[1][1]), color="red", lw=2)
+ax[0,1].axvline(np.nanmean(densities_F3_all_apo[1][1]), color="blue", lw=3, ls='--')
+ax[1,1].axvline(np.nanmean(densities_A12_all_apo[1][1]), color="red", lw=3, ls='--')
+
+ax[1,2].set_title("A12 - A12 96hr")
+ax[0,2].hist(densities_F3_all[1][2], color="cyan", bins=50, alpha=alpha, label="F3 - KO")
+ax[1,2].hist(densities_A12_all[1][2], color="red", bins=50, alpha=alpha, label="A12 - KO")
+ax[0,2].axvline(np.nanmean(densities_F3_all[1][2]), color="blue", lw=2, label="F3 - KO")
+ax[1,2].axvline(np.nanmean(densities_A12_all[1][2]), color="red", lw=2, label="A12 - KO")
+ax[0,2].axvline(np.nanmean(densities_F3_all_apo[1][2]), color="blue", lw=3, label="F3 apo - KO", ls='--')
+ax[1,2].axvline(np.nanmean(densities_A12_all_apo[1][2]), color="red", lw=3, label="A12 apo - KO", ls='--')
+ax[1,2].legend()
+ax[0,2].legend()
+
+plt.show()
+
+
+F3s_mean_dens_WT = np.array([np.nanmean(densities_F3_all[0][i]) for i in range(3)])
+F3s_mean_dens_KO = np.array([np.nanmean(densities_F3_all[1][i]) for i in range(3)])
+A12s_mean_dens_WT = np.array([np.nanmean(densities_A12_all[0][i]) for i in range(3)])
+A12s_mean_dens_KO = np.array([np.nanmean(densities_A12_all[1][i]) for i in range(3)])
+g_sizes_WT = np.array([np.nanmean(gastruloid_sizes[0][i]) for i in range(3)])
+g_sizes_KO = np.array([np.nanmean(gastruloid_sizes[1][i]) for i in range(3)])
+
+
+F3s_stds_dens_WT = np.array([np.nanstd(densities_F3_all[0][i]) for i in range(3)])
+F3s_stds_dens_KO = np.array([np.nanstd(densities_F3_all[1][i]) for i in range(3)])
+A12s_stds_dens_WT = np.array([np.nanstd(densities_A12_all[0][i]) for i in range(3)])
+A12s_stds_dens_KO = np.array([np.nanstd(densities_A12_all[1][i]) for i in range(3)])
+g_sizes_stds_WT = np.array([np.nanstd(gastruloid_sizes[0][i]) for i in range(3)])
+g_sizes_stds_KO = np.array([np.nanstd(gastruloid_sizes[1][i]) for i in range(3)])
+
+conds = np.array([48, 72, 96])
+fig, ax = plt.subplots(figsize=(6,4))
+axt = ax.twinx()
+ax.plot(conds, F3s_mean_dens_WT, color="green", lw=3, label="F3 - WT")
+ax.fill_between(conds, F3s_mean_dens_WT-F3s_stds_dens_WT, F3s_mean_dens_WT+F3s_stds_dens_WT, color="green", alpha=0.3)
+
+ax.plot(conds, F3s_mean_dens_KO, color="cyan", lw=3, label="F3 - KO")
+ax.fill_between(conds, F3s_mean_dens_KO-F3s_stds_dens_KO, F3s_mean_dens_KO+F3s_stds_dens_KO, color="cyan", alpha=0.3)
+
+ax.plot(conds, A12s_mean_dens_WT, color="magenta", lw=3, label="A12 - WT")
+ax.plot(conds, A12s_mean_dens_KO, color="red", lw=3, label="A12 - KO")
+ax.set_xticks(conds)
+ax.set_xlabel("Time (hr)")
+ax.set_ylabel(r"$\rho_\mathrm{{local}}$  $\mu \mathrm{{m}}^{{-2}}$")
+axt.plot(conds, g_sizes_WT, color="black", label="WT", lw=3)
+axt.plot(conds, g_sizes_KO, color="grey", label="KO", lw=3)
+axt.legend()
+ax.legend()
+axt.set_ylabel("mean \# of cells")
+plt.tight_layout()
+plt.show()
+
+from scipy.stats import ttest_ind
+x1 = [i for i in densities_F3_all[1][1] if not np.isnan(i)]
+x2 = [i for i in densities_A12_all[1][1] if not np.isnan(i)]
+
+res = ttest_ind(x1, x2)
