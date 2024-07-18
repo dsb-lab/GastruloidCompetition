@@ -21,9 +21,9 @@ for TIME in TIMES:
     dists_centroid_F3 = []
 
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
-    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/late_apoptosis/{}/WT/'.format(TIME)
+    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
+    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/late_apoptosis/{}/KO/'.format(TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)

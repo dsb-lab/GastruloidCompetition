@@ -6,6 +6,17 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
+
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=20) 
+mpl.rc('axes', labelsize=20) 
+mpl.rc('xtick', labelsize=20) 
+mpl.rc('ytick', labelsize=20) 
+mpl.rc('legend', fontsize=16) 
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 
@@ -156,9 +167,9 @@ for aps, apo_stage in enumerate(apo_stages):
 
 fig, ax = plt.subplots(2,3, figsize=(15,8))
 for t, TIME in enumerate(TIMES):
-    apo_mean = plt.Circle((0,0), MEAN_DISTS[0, t], linestyle='--', color="k", fill=False, linewidth=2, label="ALL")
+    apo_mean = plt.Circle((0,0), MEAN_DISTS[0, t], linestyle='--', color="k", fill=False, linewidth=2, label="all cells")
     ax[0, t].add_patch(apo_mean)
-    apo_mean = plt.Circle((0,0), MEAN_DISTS[0, t], linestyle='--', color="k", fill=False, linewidth=2, label="ALL")
+    apo_mean = plt.Circle((0,0), MEAN_DISTS[0, t], linestyle='--', color="k", fill=False, linewidth=2, label="all cells")
     ax[1, t].add_patch(apo_mean)
     theta = np.linspace(0, 2 * np.pi, 100)
     
@@ -234,10 +245,10 @@ for t, TIME in enumerate(TIMES):
                         axesA=ax[1, t], axesB=ax[0, t], color="grey", linewidth=3)
     ax[1, t].add_artist(con)
 
-    gastruloid_border = plt.Circle((0,0), 1.0, color="k", fill=False, linewidth=3, label="Gastruloid edge")
+    gastruloid_border = plt.Circle((0,0), 1.0, color="k", fill=False, linewidth=3, label="gastruloid edge")
     ax[1, t].add_patch(gastruloid_border)
 
-    ax[1, t].scatter([0], [0], color="k",label="Gatruloid centroid")
+    ax[1, t].scatter([0], [0], color="k",label="gatruloid centroid")
     ax[1, t].set_xlim((xlims[0] - 0.005, xlims[1] + 0.005))
     ax[1, t].set_ylim((ylims[0] - 0.005, ylims[1] + 0.005))
     # ax[1, t].set_title(TIME)

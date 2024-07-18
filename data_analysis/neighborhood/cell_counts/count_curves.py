@@ -3,30 +3,6 @@ from embdevtools import get_file_name, CellTracking, save_4Dstack, save_4Dstack_
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-from scipy import stats
-
-def compute_distance_xy(x1, x2, y1, y2):
-    """
-    Parameters
-    ----------
-    x1 : number
-        x coordinate of point 1
-    x2 : number
-        x coordinate of point 2
-    y1 : number
-        y coordinate of point 1
-    y2 : number
-        y coordinate of point 2
-
-    Returns
-    -------
-    dist : number
-        euclidean distance between points (x1, y1) and (x2, y2)
-    """
-    dist = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-    return dist
-
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')

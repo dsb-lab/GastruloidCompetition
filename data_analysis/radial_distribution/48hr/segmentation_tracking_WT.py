@@ -269,8 +269,12 @@ for apo_stage in apo_stages:
 
         contour_points3D = []
         for zid, z in enumerate(range(minz, maxz+1)):
-            contours = measure.find_contours(ES.LS[0][zid], 0.5)[0]
-            for p in contours:
+            contours = measure.find_contours(ES.LS[0][z], 0.5)
+            contour = []
+            for cont in contours:
+                if len(cont)>len(contour):
+                    contour = cont
+            for p in contour:
                 contour_points3D.append(np.array([z, p[1], p[0]]))
         contour_points3D = np.array(contour_points3D)
 
