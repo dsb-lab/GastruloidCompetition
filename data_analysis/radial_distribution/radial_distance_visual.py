@@ -257,7 +257,7 @@ ES = EmbryoSegmentation(
         smoothing=20,
         trange=None,
         zrange=range(minz, maxz+1),
-        mp_threads=None,
+        mp_threads=14,
     )
 
 ES(hyperstack_seg)
@@ -336,8 +336,8 @@ centroid = np.mean(centers_all, axis=0)
 # Plot the ellipse
 ax.imshow(hyperstack_seg[0, z_plot])
 ax.plot(contour_points3D[:, 0], contour_points3D[:, 1], ls='-', label='edge', c='k', lw=4)
-ax.plot([point_inside[0], point_contour[0]], [point_inside[1], point_contour[1]], c="grey", lw=3)
-ax.plot([point_inside[0], centroid[0]], [point_inside[1], centroid[1]], c="grey", lw=3)
+ax.plot([point_inside[0], point_contour[0]], [point_inside[1], point_contour[1]], c=[0.8,0.8,0.8], lw=3)
+ax.plot([point_inside[0], centroid[0]], [point_inside[1], centroid[1]], c=[0.3,0.3,0.3], lw=3)
 ax.scatter([point_inside[0]], [point_inside[1]], s=75, label="point", color="brown", zorder=10)
 ax.scatter([centroid[0]], [centroid[1]], s=75, label="centroid", color="k", zorder=10)
 ax.scatter([point_contour[0]], [point_contour[1]], s=75, label="closest edge", color="yellow", zorder=10)

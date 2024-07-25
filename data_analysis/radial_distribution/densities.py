@@ -304,7 +304,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                         true_dists.append(true_dists_p)
                         true_neighs.append(true_neigh_p)
 
-                    densities = [1/(np.mean(dists))**2 for dists in true_dists]
+                    densities = [1/(np.mean(dists))**3 for dists in true_dists]
 
                     _densities_F3 = [densities[n] for n in range(len(fates)) if fates[n] == 0]
                     _densities_A12 = [densities[n] for n in range(len(fates)) if fates[n] == 1]
@@ -368,8 +368,8 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
         ax[1, ap].set_xticks(conds)
         ax[1, ap].set_xlabel("Time (hr)")
         if ap==0:
-            ax[0, ap].set_ylabel(r"mean $\rho_\mathrm{{local}}$  $\mu \mathrm{{m}}^{{-2}}$")
-            ax[1, ap].set_ylabel(r"mean $\rho_\mathrm{{local}}$  $\mu \mathrm{{m}}^{{-2}}$")
+            ax[0, ap].set_ylabel(r"mean $\rho_\mathrm{{local}}$  $\mu \mathrm{{m}}^{{-3}}$")
+            ax[1, ap].set_ylabel(r"mean $\rho_\mathrm{{local}}$  $\mu \mathrm{{m}}^{{-3}}$")
 
         ax[0, ap].spines[['right', 'top']].set_visible(False)
         ax[1, ap].spines[['right', 'top']].set_visible(False)

@@ -409,6 +409,6 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
             ax[1, ap].legend()
         
     plt.tight_layout()
-    plt.savefig(path_figures+"neigborhod_{}.svg".format(number_of_neighs))
-    plt.savefig(path_figures+"neigborhod_{}.pdf".format(number_of_neighs))
+    plt.savefig(path_figures+"neighborhood_{}.svg".format(number_of_neighs))
+    plt.savefig(path_figures+"neighborhood_{}.pdf".format(number_of_neighs))
 plt.show()

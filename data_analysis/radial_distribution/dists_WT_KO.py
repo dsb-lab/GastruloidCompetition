@@ -103,6 +103,17 @@ for TIME in TIMES:
     DISTS_A12_WT.append(dists_A12)
     DISTS_apo_WT.append(dists_Casp3)
 
+
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=18) 
+mpl.rc('axes', labelsize=18) 
+mpl.rc('xtick', labelsize=18) 
+mpl.rc('ytick', labelsize=18) 
+mpl.rc('legend', fontsize=18) 
 # ks_dist = ks_2samp(samp, dists_contour_Casp3)
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(2,3, figsize=(12,6),sharex=True)
@@ -149,11 +160,9 @@ for t, TIME in enumerate(TIMES):
 
     # ax[0].legend()
     # ax[1].legend()
-
+plt.tight_layout()
 plt.savefig(path_figures+"dists_condition.svg")
 plt.savefig(path_figures+"dists_condition.pdf")
-
-plt.tight_layout()
 plt.show()
 
 import matplotlib.pyplot as plt
