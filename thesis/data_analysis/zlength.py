@@ -9,8 +9,8 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/WT/'
-path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/test/'
+path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/96hr/WT/'
+path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/96hr/test/'
 
 try: 
     files = get_file_names(path_save_dir)
@@ -92,8 +92,8 @@ for f, file in enumerate(files):
     )
 
 
-    CT_F3.load()
-    CT_F3.plot_tracking()
+    CT_F3.run()
+    # CT_F3.plot_tracking()
 
     len(CT_F3.blocked_cells)
     ch_A12 = channel_names.index("A12")
@@ -127,7 +127,7 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    CT_A12.load()
+    CT_A12.run()
     # CT_A12.plot_tracking()
 
 
