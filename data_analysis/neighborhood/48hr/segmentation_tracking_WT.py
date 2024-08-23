@@ -142,7 +142,7 @@ for f, file in enumerate(files):
     )
 
 
-    # CT_F3.load()
+    CT_F3.load()
     # CT_F3.plot_tracking()
     
     ch_A12 = channel_names.index("A12")
@@ -156,7 +156,7 @@ for f, file in enumerate(files):
         'masks_cmap': 'tab10',
         # 'plot_stack_dims': (256, 256), 
         'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-        'channels':[ch_A12],
+        'channels':[ch_A12, ch_F3],
         'min_outline_length':75,
     }
 
@@ -176,8 +176,8 @@ for f, file in enumerate(files):
         channels=chans
     )
 
-    # CT_A12.load()
-    # CT_A12.plot_tracking()
+    CT_A12.load()
+    CT_A12.plot_tracking()
     
     ch_Casp3 = channel_names.index("Casp3")
 
