@@ -10,6 +10,11 @@ path_data = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/merge/2024_
 
 channel_names = ["A12", "Casp3", "F3", "DAPI"]
 
+ch_F3 = channel_names.index("F3")
+ch_A12 = channel_names.index("A12")
+ch_Casp3 = channel_names.index("Casp3")
+ch_DAPI = channel_names.index("DAPI")
+
 files = get_file_names(path_data)
 files = [file for file in files if ".tif" in file]
 
@@ -26,10 +31,6 @@ files_KO_72_24 = [file for file in files if all(map(file.__contains__, ["72+24",
 conditions = [files_WT_48_6, files_KO_48_6, files_WT_48_24, files_KO_48_24, files_WT_72_6, files_KO_72_6, files_WT_72_24, files_KO_72_24]
 conditions_names = ["48+06_F3+WT", "48+06_F3+KO", "48+24_F3+WT", "48+24_F3+KO", "72+06_F3+WT", "72+06_F3+KO", "72+24_F3+WT", "72+24_F3+KO"]
 files_current = files_WT_72_6
-
-ch_F3 = channel_names.index("F3")
-ch_A12 = channel_names.index("A12")
-ch_Casp3 = channel_names.index("Casp3")
 
 for c, files_current in enumerate(conditions):
     print(c)
@@ -53,7 +54,7 @@ for c, files_current in enumerate(conditions):
             checkerboard_size=10,
             num_inter=100,
             smoothing=20,
-            mp_threads=13,
+            # mp_threads=13,
         )
         ES(hstack)
         for ch in range(hyperstack.shape[2]):
@@ -265,8 +266,8 @@ for c, files_current in enumerate(conditions):
         A12_SIGNALS[b, center-border:center] = A12_PROJ[b][:border]
         A12_SIGNALS[b, center:2*center-border] = A12_PROJ[b][border:]
 
-        CASP3_SIGNALS[b, center-border:center] = CASP3_PROJ[b][:border]/(F3_PROJ[b][:border]+A12_PROJ[b][:border])
-        CASP3_SIGNALS[b, center:2*center-border] = CASP3_PROJ[b][border:]/(F3_PROJ[b][border:]+A12_PROJ[b][border:])
+        CASP3_SIGNALS[b, center-border:center] = CASP3_PROJ[b][:border]
+        CASP3_SIGNALS[b, center:2*center-border] = CASP3_PROJ[b][border:]
 
 
     f3_signal = np.nanmean(F3_SIGNALS, axis=0)

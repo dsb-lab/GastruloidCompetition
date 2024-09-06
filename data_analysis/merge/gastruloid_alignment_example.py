@@ -25,7 +25,7 @@ files_KO_72_6 = [file for file in files if all(map(file.__contains__, ["72+06", 
 files_WT_72_24 = [file for file in files if all(map(file.__contains__, ["72+24", "F3+WT"]))]
 files_KO_72_24 = [file for file in files if all(map(file.__contains__, ["72+24", "F3+KO"]))]
 
-files_current = files_WT_72_6
+files_current = files_WT_48_6
 for file in files_current:
     print(file)
     # file=files_current[1]
@@ -52,7 +52,6 @@ for file in files_current:
             st = stack[z]
             mask = ES.Backmask[0][z]
             if len(mask) < 10:
-                print("NOPE")
                 st[:]=np.nan
             else:
                 st[mask[:,1], mask[:,0]]=np.nan
