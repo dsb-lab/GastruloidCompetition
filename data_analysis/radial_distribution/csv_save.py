@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path
 import numpy as np
 from scipy import stats
 

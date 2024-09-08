@@ -54,7 +54,7 @@ for c, files_current in enumerate(conditions):
             checkerboard_size=10,
             num_inter=100,
             smoothing=20,
-            # mp_threads=13,
+            mp_threads=13,
         )
         ES(hstack)
         for ch in range(hyperstack.shape[2]):
@@ -235,12 +235,15 @@ for c, files_current in enumerate(conditions):
         stack_corrected = construct_RGB(R=stack_corrected_a12_mean, G=stack_corrected_f3_mean)
 
         f3_proj_mean = np.nanmean(stack_f3_mean, axis=0)
+        f3_proj_mean[np.where(f3_proj_mean<1)] = np.nan
         f3_proj_max = np.nanmean(stack_f3_max, axis=0)
 
         a12_proj_mean = np.nanmean(stack_a12_mean, axis=0)
+        a12_proj_mean[np.where(a12_proj_mean<1)] = np.nan
         a12_proj_max = np.nanmean(stack_a12_max, axis=0)
 
         casp3_proj_mean = np.nanmean(stack_casp3_mean, axis=0)
+        casp3_proj_mean[np.where(casp3_proj_mean<0.1)] = np.nan
         casp3_proj_max = np.nanmean(stack_casp3_max, axis=0)
 
         comb = gaussian_filter1d(f3_proj_max*a12_proj_max, sigma=sigma)
@@ -284,6 +287,7 @@ for c, files_current in enumerate(conditions):
     fig, ax = plt.subplots()
     axc = ax.twinx()
     ax.plot(x, f3_signal, color="green", lw=4)
+
     ax.fill_between(x, f3_signal - f3_signal_std, f3_signal + f3_signal_std, color="green", alpha=0.2)
 
     ax.plot(x, a12_signal, color="magenta", lw=4)
@@ -291,5 +295,6 @@ for c, files_current in enumerate(conditions):
 
     axc.plot(x, casp3_signal, color=[238/255, 210/255, 0.0], lw=4)
     axc.fill_between(x, casp3_signal - casp3_signal_std, casp3_signal + casp3_signal_std, color=[238/255, 210/255, 0.0], alpha=0.2)
+    ax.set_xlim(x[0],x[1])
     ax.set_title(cname)
     plt.savefig(path_data+cname+".png")

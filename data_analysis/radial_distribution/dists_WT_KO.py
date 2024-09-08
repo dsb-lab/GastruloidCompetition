@@ -1,10 +1,12 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
+from sklearn.linear_model import LinearRegression
+
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/spatial_distribution/"
@@ -71,6 +73,10 @@ for TIME in TIMES:
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
 
+    dists_F3 = []
+    dists_A12 = []
+    dists_Casp3 = []
+    
     channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
     if "96hr" in path_data_dir:
         channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
@@ -116,13 +122,15 @@ mpl.rc('ytick', labelsize=18)
 mpl.rc('legend', fontsize=18) 
 # ks_dist = ks_2samp(samp, dists_contour_Casp3)
 import matplotlib.pyplot as plt
+
+
 fig, ax = plt.subplots(2,3, figsize=(12,6),sharex=True)
 for t, TIME in enumerate(TIMES):
     
     ax[0,t].hist(DISTS_F3_WT[t], color="green", alpha=0.5, bins=50, density=True)
     ax[0,t].hist(DISTS_A12_WT[t], color="magenta", alpha=0.5, bins=50, density=True)
     ax[0,t].set_yticks([])
-    ax[0,t].set_xlim(-0.1,1.1)
+    # ax[0,t].set_xlim(-0.1,1.1)
     ax[0,t].set_title(TIME)
     ax[0,t].spines[['left', 'right', 'top']].set_visible(False)
     if t==0:
@@ -131,7 +139,7 @@ for t, TIME in enumerate(TIMES):
     ax[1,t].hist(DISTS_F3_KO[t], color="green", alpha=0.5, bins=50, density=True, label="F3")
     ax[1,t].hist(DISTS_A12_KO[t], color="magenta", alpha=0.5, bins=50, density=True, label="A12")
     ax[1,t].set_yticks([])
-    ax[1,t].set_xlim(-0.1,1.1)
+    # ax[1,t].set_xlim(-0.1,1.1)
     ax[1,t].spines[['left', 'right', 'top']].set_visible(False)
     ax[1,t].set_xlabel(r"relative position on gastruloid ($P$)")
 
@@ -141,29 +149,181 @@ for t, TIME in enumerate(TIMES):
     if t==len(TIMES)-1:
         ax[1,t].legend(loc="upper left")
 
-    # ax[1,t].hist(DISTS_apo[t], color="yellow", alpha=0.5, bins=50, density=True)
-    # ax[1,t].set_xlabel(r"relative distance $P$")
-    # ax[1,t].set_yticks([])
-    # ax[1,t].set_xlim(-0.1,1.1)
-    # ax[1,t].spines[['left', 'right', 'top']].set_visible(False)
-
-
-    # ax[0].set_title("All")
-    # dists = DISTS[t]
-    # n_hist, bins, patches = ax[0].hist(dists, alpha=0.5, bins=30, label=TIME, density=True)
-    # ax[0].set_xlabel("relative position on gastruloid")
-
-    # ax[1].set_title("Apo")
-    # dists = DISTS_apo[t]
-    # n_hist, bins, patches = ax[1].hist(dists, alpha=0.5, bins=30, label="{} apo".format(TIME), density=True)
-    # ax[1].set_xlabel("relative position on gastruloid")
-
-    # ax[0].legend()
-    # ax[1].legend()
 plt.tight_layout()
-plt.savefig(path_figures+"dists_condition.svg")
-plt.savefig(path_figures+"dists_condition.pdf")
+# plt.savefig(path_figures+"dists_condition.svg")
+# plt.savefig(path_figures+"dists_condition.pdf")
 plt.show()
+
+rem=1
+bin_n = 20
+fig, ax = plt.subplots(2,3, figsize=(12,6),sharex=True, sharey=True)
+for t, TIME in enumerate(TIMES):
+    
+    _counts, bins = np.histogram(DISTS_F3_WT[t], bins=bin_n, density=True)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[0,t].scatter(bins[1+rem:], counts[rem:], color="green", s=30)
+    else:
+        ax[0,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="green", s=30)
+
+    totals = np.sum(_counts)
+    
+    _counts, bins = np.histogram(DISTS_A12_WT[t], bins=bin_n, density=True)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[0,t].scatter(bins[1+rem:], counts[rem:], color="magenta", s=30)
+    else:
+        ax[0,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="magenta", s=30)
+
+    
+    totals+= np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[0,t].plot(bins, np.ones_like(bins)*total_density/2, color="grey", lw=3)
+
+    # ax[0,t].set_yticks([])
+    ax[0,t].set_xlim(-0.1,1.1)
+    ax[0,t].set_title(TIME)
+    # ax[0,t].spines[['left', 'right', 'top']].set_visible(False)
+    if t==0:
+        ax[0,t].set_ylabel("WT")
+    
+    _counts, bins = np.histogram(DISTS_F3_KO[t], bins=bin_n, density=True)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[1,t].scatter(bins[1+rem:], counts[rem:], color="green", label="F3", s=30)
+    else:
+        ax[1,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="green", label="F3", s=30)
+        
+    totals = np.sum(_counts)
+    
+    _counts, bins = np.histogram(DISTS_A12_KO[t], bins=bin_n, density=True)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+
+    if rem==0:
+        ax[1,t].scatter(bins[1+rem:], counts[rem:], color="magenta", label="A12", s=30)
+    else:
+        ax[1,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="magenta", label="A12", s=30)
+
+    totals+= np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[1,t].plot(bins, np.ones_like(bins)*total_density/2, color="grey", lw=3, label="global density/2")
+    
+    # ax[1,t].set_yticks([])
+    ax[1,t].set_xlim(-0.1,1.1)
+    # ax[1,t].spines[['left', 'right', 'top']].set_visible(False)
+    ax[1,t].set_xlabel(r"relative position on gastruloid ($P$)")
+    if t ==0:
+        ax[1,t].set_ylabel("KO")
+
+    if t==len(TIMES)-1:
+        ax[1,t].legend(loc="upper left")
+    
+    # ax[1,t].set_ylim
+plt.tight_layout()
+# plt.savefig(path_figures+"dists_condition.svg")
+# plt.savefig(path_figures+"dists_condition.pdf")
+plt.show()
+
+
+rem=1
+bin_n = 50
+fig, ax = plt.subplots(2,3, figsize=(12,6),sharex=True, sharey=False)
+for t, TIME in enumerate(TIMES):
+    
+    _counts, bins = np.histogram(DISTS_F3_WT[t], bins=bin_n, density=False)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[0,t].scatter(bins[1+rem:], counts[rem:], color="green", s=30)
+    else:
+        ax[0,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="green", s=30)
+
+    totals = np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[0,t].plot(bins, np.ones_like(bins)*total_density, color="green", lw=3)
+    
+    _counts, bins = np.histogram(DISTS_A12_WT[t], bins=bin_n, density=False)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[0,t].scatter(bins[1+rem:], counts[rem:], color="magenta", s=30)
+    else:
+        ax[0,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="magenta", s=30)
+
+    
+    totals = np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[0,t].plot(bins, np.ones_like(bins)*total_density, color="magenta", lw=3)
+
+    # ax[0,t].set_yticks([])
+    ax[0,t].set_xlim(-0.1,1.1)
+    ax[0,t].set_title(TIME)
+    # ax[0,t].spines[['left', 'right', 'top']].set_visible(False)
+    if t==0:
+        ax[0,t].set_ylabel("WT")
+    
+    _counts, bins = np.histogram(DISTS_F3_KO[t], bins=bin_n, density=False)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+    if rem==0:
+        ax[1,t].scatter(bins[1+rem:], counts[rem:], color="green", label="F3", s=30)
+    else:
+        ax[1,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="green", label="F3", s=30)
+        
+    totals = np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[1,t].plot(bins, np.ones_like(bins)*total_density, color="green", lw=3, label="global F3")
+    
+    _counts, bins = np.histogram(DISTS_A12_KO[t], bins=bin_n, density=False)
+    dbins = np.mean(np.diff(bins))
+    bins[1:] -= dbins
+    bins[0] = 0
+    counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+
+    if rem==0:
+        ax[1,t].scatter(bins[1+rem:], counts[rem:], color="magenta", label="A12", s=30)
+    else:
+        ax[1,t].scatter(bins[1+rem:-rem], counts[rem:-rem], color="magenta", label="A12", s=30)
+
+    totals = np.sum(_counts)
+    total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+    ax[1,t].plot(bins, np.ones_like(bins)*total_density, color="magenta", lw=3, label="global A12")
+
+    
+    # ax[1,t].set_yticks([])
+    ax[1,t].set_xlim(-0.1,1.1)
+    # ax[1,t].spines[['left', 'right', 'top']].set_visible(False)
+    ax[1,t].set_xlabel(r"relative position on gastruloid ($P$)")
+    if t ==0:
+        ax[1,t].set_ylabel("KO")
+
+    if t==len(TIMES)-1:
+        ax[1,t].legend()
+    
+    # ax[1,t].set_ylim
+plt.tight_layout()
+# plt.savefig(path_figures+"dists_condition.svg")
+# plt.savefig(path_figures+"dists_condition.pdf")
+plt.show()
+
 
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1,2, figsize=(10,3.5))
@@ -188,6 +348,6 @@ for t, TIME in enumerate(TIMES):
         ax[1].legend(loc="upper left")
 
 plt.tight_layout()
-plt.savefig(path_figures+"dists_apo.svg")
-plt.savefig(path_figures+"dists_apo.pdf")
+# plt.savefig(path_figures+"dists_apo.svg")
+# plt.savefig(path_figures+"dists_apo.pdf")
 plt.show()

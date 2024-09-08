@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
+from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -83,7 +83,7 @@ for TIME in TIMES:
                 'channels':[1,0,ch_Casp3],
                 'min_outline_length':75,
             }
-            CT_Casp3 = CellTracking(
+            CT_Casp3 = cellSegTrack(
                 path_data,
                 path_save,
                 segmentation_args=segmentation_args,
@@ -136,7 +136,7 @@ for TIME in TIMES:
                 'blur': [3,1], 
                 # 'n_tiles': (2,2),
             }
-            CT_Casp3 = CellTracking(
+            CT_Casp3 = cellSegTrack(
                 path_data,
                 path_save,
                 segmentation_args=segmentation_args,

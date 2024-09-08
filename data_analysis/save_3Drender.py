@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path, save_4Dstack
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path, save_4Dstack
 import numpy as np
 from scipy import stats
 
@@ -79,7 +79,7 @@ chans = [ch_F3]
 for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
-CT_F3 = CellTracking(
+CT_F3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -114,7 +114,7 @@ for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
 
-CT_A12 = CellTracking(
+CT_A12 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -156,7 +156,7 @@ segmentation_args={
     'blur': [3,1], 
     # 'n_tiles': (2,2),
 }
-CT_Casp3 = CellTracking(
+CT_Casp3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -174,7 +174,7 @@ batch_args = {
     'name_format':"all_{}",
     'extension':".tif",
 }
-CT_all = CellTracking(
+CT_all = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,

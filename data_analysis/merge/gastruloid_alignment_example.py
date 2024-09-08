@@ -95,7 +95,7 @@ for file in files_current:
     xs_a12 = np.average(np.array(pointsx), weights=weights_a12)
     ys_a12 = np.average(np.array(pointsy), weights=weights_a12)
 
-    stack = construct_RGB(R=stack_a12_mean, G=stack_f3_mean)
+    stack = construct_RGB(R=stack_a12_mean/np.nanmax(stack_a12_mean), G=stack_f3_mean/np.nanmax(stack_f3_mean))
 
     import SimpleITK as sitk
     import numpy as np
@@ -222,15 +222,18 @@ for file in files_current:
         xs_a12_corr = np.average(np.array(pointsx), weights=weights_a12)
         ys_a12_corr = np.average(np.array(pointsy), weights=weights_a12)
 
-    stack_corrected = construct_RGB(R=stack_corrected_a12_mean, G=stack_corrected_f3_mean)
+    stack_corrected = construct_RGB(R=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean), G=stack_corrected_f3_mean/np.nanmax(stack_corrected_f3_mean))
 
     f3_proj_mean = np.nanmean(stack_f3_mean, axis=0)
+    f3_proj_mean[np.where(f3_proj_mean<1)] = np.nan
     f3_proj_max = np.nanmean(stack_f3_max, axis=0)
 
     a12_proj_mean = np.nanmean(stack_a12_mean, axis=0)
+    a12_proj_mean[np.where(a12_proj_mean<1)] = np.nan
     a12_proj_max = np.nanmean(stack_a12_max, axis=0)
 
     casp3_proj_mean = np.nanmean(stack_casp3_mean, axis=0)
+    casp3_proj_mean[np.where(casp3_proj_mean<0.1)] = np.nan
     casp3_proj_max = np.nanmean(stack_casp3_max, axis=0)
 
     fig, ax = plt.subplots(2,2, figsize=(10,10))
@@ -243,14 +246,15 @@ for file in files_current:
     ax[1,0].plot(a12_proj_mean, c="magenta", lw=4)
     ax1 = ax[1,0].twinx()
     ax1.plot(casp3_proj_mean, c=[238/255, 210/255, 0.0], lw=4)
+    ax[1,0].set_xlim(0,len(casp3_proj_mean))
 
     comb = gaussian_filter1d(f3_proj_max*a12_proj_max, sigma=2)
     ax[1,0].plot(f3_proj_mean + a12_proj_mean, c="grey", lw=4)
 
     ax[0,0].axvline(np.nanargmax(comb), c="white", lw=4)
     ax[1,0].axvline(np.nanargmax(comb), c="black", lw=4)
-    ax[1,0].set_xticks([])
-    ax[1,0].set_yticks([])
+    # ax[1,0].set_xticks([])
+    # ax[1,0].set_yticks([])
 
     f3_proj_mean = np.nanmean(stack_corrected_f3_mean, axis=0)
     f3_proj_max = np.nanmean(stack_corrected_f3_max, axis=0)
@@ -275,7 +279,8 @@ for file in files_current:
 
     ax[0,1].axvline(np.nanargmax(comb), c="white", lw=4)
     ax[1,1].axvline(np.nanargmax(comb), c="black", lw=4)
-    ax[1,1].set_xticks([])
-    ax[1,1].set_yticks([])
+    ax[1,1].set_xlim(0,len(casp3_proj_mean))
+    # ax[1,1].set_xticks([])
+    # ax[1,1].set_yticks([])
     plt.tight_layout()
     plt.show()

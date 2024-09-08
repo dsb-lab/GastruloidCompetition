@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift, correct_path
+from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift, correct_path
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -111,7 +111,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                     for _ch in range(len(channel_names)):
                         if _ch not in chans:
                             chans.append(_ch)
-                    CT_F3 = CellTracking(
+                    CT_F3 = cellSegTrack(
                         path_data,
                         path_save,
                         segmentation_args=segmentation_args,
@@ -144,7 +144,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                         if _ch not in chans:
                             chans.append(_ch)
 
-                    CT_A12 = CellTracking(
+                    CT_A12 = cellSegTrack(
                         path_data,
                         path_save,
                         segmentation_args=segmentation_args,
@@ -184,7 +184,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                         'blur': [5,1], 
                         # 'n_tiles': (2,2),
                     }
-                    CT_Casp3 = CellTracking(
+                    CT_Casp3 = cellSegTrack(
                         path_data,
                         path_save,
                         segmentation_args=segmentation_args,

@@ -5,7 +5,7 @@ path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/fi
 
 
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path
 import numpy as np
 from scipy import stats
 
@@ -105,7 +105,7 @@ chans = [ch_F3]
 for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
-CT_F3 = CellTracking(
+CT_F3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -140,7 +140,7 @@ for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
 
-CT_A12 = CellTracking(
+CT_A12 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -183,7 +183,7 @@ segmentation_args={
     'blur': [3,1], 
     # 'n_tiles': (2,2),
 }
-CT_Casp3 = CellTracking(
+CT_Casp3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -240,7 +240,7 @@ maxz = int(np.max(centers[:,0]))
 centers = np.array(centers)*resolutions
 centroid = np.mean(centers, axis=0)
 
-from embdevtools import EmbryoSegmentation, tif_reader_5D
+from qlivecell import EmbryoSegmentation, tif_reader_5D
 hyperstack, metadata = tif_reader_5D(path_data)
 channels_seg = np.array([ch_A12, ch_F3, ch_Casp3])
 hyperstack_seg = np.sum(hyperstack[:,:,channels_seg, :, :].astype("int32"), axis=2)

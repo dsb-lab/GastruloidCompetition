@@ -1,7 +1,7 @@
 import sys
-sys.path.append('/home/pablo/Desktop/PhD/projects/embdevtools/celltrack/src/celltrack')
+sys.path.append('/home/pablo/Desktop/PhD/projects/qlivecell/celltrack/src/celltrack')
 
-from embdevtools import CellTracking, get_file_embcode, read_img_with_resolution, load_cells
+from qlivecell import cellSegTrack, get_file_embcode, read_img_with_resolution, load_cells
 
 
 import os
@@ -34,7 +34,7 @@ IMGS[:,:,:,:,1] = IMGS1
 
 cells, CT_info = load_cells(path_save, embcode + '_ch%d' %ch)
         
-CT = CellTracking(IMGS2, path_save, embcode + '_ch%d' %ch, CELLS=cells, CT_info=CT_info
+CT = cellSegTrack(IMGS2, path_save, embcode + '_ch%d' %ch, CELLS=cells, CT_info=CT_info
                     , stacks_for_plotting=None
                     , plot_layout=(1,1)
                     , plot_overlap=1

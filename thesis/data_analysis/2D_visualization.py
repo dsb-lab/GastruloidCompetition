@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path, save_4Dstack, arboretum_napari
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path, save_4Dstack, arboretum_napari
 import numpy as np
 from scipy import stats
 import matplotlib as mpl
@@ -15,8 +15,8 @@ mpl.rc('xtick', labelsize=14)
 mpl.rc('ytick', labelsize=14) 
 mpl.rc('legend', fontsize=14) 
 
-from embdevtools.celltrack.core.tools.tools import increase_point_resolution
-from embdevtools import construct_RGB
+from qlivecell.celltrack.core.tools.tools import increase_point_resolution
+from qlivecell import construct_RGB
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -95,7 +95,7 @@ chans = [ch_F3]
 for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
-CT_F3 = CellTracking(
+CT_F3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -127,7 +127,7 @@ for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
 
-CT_A12 = CellTracking(
+CT_A12 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -144,7 +144,7 @@ batch_args = {
     'name_format_save':"all_{}",
     'extension':".tif",
 }
-CT_all1 = CellTracking(
+CT_all1 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -257,7 +257,7 @@ chans = [ch_F3]
 for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
-CT_F3 = CellTracking(
+CT_F3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -289,7 +289,7 @@ for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
 
-CT_A12 = CellTracking(
+CT_A12 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -308,7 +308,7 @@ batch_args = {
     'name_format_save':"all_{}",
     'extension':".tif",
 }
-CT_all2 = CellTracking(
+CT_all2 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,

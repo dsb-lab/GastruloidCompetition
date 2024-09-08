@@ -114,8 +114,8 @@ def generate_points_on_ellipse(semi_x=5, semi_y=3, num_points=100):
 
 
 
-num_points_base = 2000
-radiuses = [[1,1,1], [2,1,1], [4,1,1]]
+num_points_base = 1000
+radiuses = [[4,1,1]]
 DISTS = []
 for r, radius in enumerate(radiuses):
 
@@ -224,5 +224,32 @@ ax[1].set_xlabel(r"relative position on ellipsoid, $P$")
 ax[1].spines[['left', 'right', 'top']].set_visible(False)
 ax[1].set_yticks([])
 plt.tight_layout()
-plt.savefig(path_figures+"ellipsoid.svg")
+# plt.savefig(path_figures+"ellipsoid.svg")
+plt.show()
+
+
+rem=1
+bin_n = 50
+figg, axx = plt.subplots(1,2)
+r = 0
+dists = DISTS[r]
+radius = radiuses[r]
+_counts, bins = np.histogram(dists, bins=bin_n)
+axx[0].plot(bins[1:], _counts, ls="-")
+
+dbins = np.mean(np.diff(bins))
+bins[1:] -= dbins
+bins[0] = 0
+counts = [_counts[i]/((4/3)*np.pi*(bins[i+1]**3-bins[i]**3)) for i in range(len(_counts))]
+if rem==0:
+    axx[1].scatter(bins[1+rem:], counts[rem:], s=30)
+else:
+    axx[1].scatter(bins[1+rem:-rem], counts[rem:-rem], s=30)
+totals = np.sum(_counts)
+total_density = np.sum(totals)/((4/3)*np.pi*(bins[-1]**3))
+axx[1].plot(bins, np.ones_like(bins)*total_density, color="grey")
+
+plt.show()
+plt.scatter(bins[1+rem:-rem], counts[rem:-rem], s=30)
+plt.plot(bins, np.ones_like(bins)*total_density, color="grey")
 plt.show()

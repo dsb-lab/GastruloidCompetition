@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from embdevtools import get_file_name, CellTracking, get_file_names, correct_path, save_4Dstack, arboretum_napari
+from qlivecell import get_file_name, cellSegTrack, get_file_names, correct_path, save_4Dstack, arboretum_napari
 import numpy as np
 from scipy import stats
 import matplotlib as mpl
@@ -15,8 +15,8 @@ mpl.rc('xtick', labelsize=14)
 mpl.rc('ytick', labelsize=14) 
 mpl.rc('legend', fontsize=14) 
 
-from embdevtools.celltrack.core.tools.tools import increase_point_resolution
-from embdevtools import construct_RGB
+from qlivecell.celltrack.core.tools.tools import increase_point_resolution
+from qlivecell import construct_RGB
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -93,7 +93,7 @@ chans = [ch_F3]
 for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
-CT_F3 = CellTracking(
+CT_F3 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -125,7 +125,7 @@ for _ch in range(len(channel_names)):
     if _ch not in chans:
         chans.append(_ch)
 
-CT_A12 = CellTracking(
+CT_A12 = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -157,7 +157,7 @@ batch_args = {
     'name_format':"ch"+str(ch_Casp3)+"_{}_early",
     'extension':".tif",
 }
-CT_Casp3_early = CellTracking(
+CT_Casp3_early = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -173,7 +173,7 @@ batch_args = {
     'name_format':"ch"+str(ch_Casp3)+"_{}_mid",
     'extension':".tif",
 }
-CT_Casp3_mid = CellTracking(
+CT_Casp3_mid = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -189,7 +189,7 @@ batch_args = {
     'name_format':"ch"+str(ch_Casp3)+"_{}_late",
     'extension':".tif",
 }
-CT_Casp3_late = CellTracking(
+CT_Casp3_late = cellSegTrack(
     path_data,
     path_save,
     segmentation_args=segmentation_args,
@@ -201,7 +201,7 @@ CT_Casp3_late = CellTracking(
 )
 CT_Casp3_late.load()
 
-from embdevtools import extract_fluoro
+from qlivecell import extract_fluoro
 results_F3 = extract_fluoro(CT_F3)
 ch = channel_names.index("F3")
 f3 = results_F3["channel_{}".format(ch)]
