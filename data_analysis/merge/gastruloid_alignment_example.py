@@ -46,6 +46,8 @@ for file in files_current:
         mp_threads=13,
     )
     ES(hstack)
+    ES.plot_segmentation(0, 15)
+
     for ch in range(hyperstack.shape[2]):
         stack = hyperstack[0,:,ch]
         for z in range(stack.shape[0]):
@@ -56,7 +58,7 @@ for file in files_current:
             else:
                 st[mask[:,1], mask[:,0]]=np.nan
             hyperstack[0, z, ch] = st
-        
+    
     stack_f3_mean = np.nanmean(hyperstack[0,:,ch_F3], axis=0)
     stack_a12_mean = np.nanmean(hyperstack[0,:,ch_A12], axis=0)
     stack_casp3_mean = np.nanmean(hyperstack[0,:,ch_Casp3], axis=0)
@@ -95,8 +97,8 @@ for file in files_current:
     xs_a12 = np.average(np.array(pointsx), weights=weights_a12)
     ys_a12 = np.average(np.array(pointsy), weights=weights_a12)
 
-    stack = construct_RGB(R=stack_a12_mean/np.nanmax(stack_a12_mean), G=stack_f3_mean/np.nanmax(stack_f3_mean))
-
+    stack = construct_RGB(R=stack_a12_mean/np.nanmax(stack_a12_mean), G=stack_f3_mean/np.nanmax(stack_f3_mean), B=stack_a12_mean/np.nanmax(stack_a12_mean))
+    
     import SimpleITK as sitk
     import numpy as np
 
@@ -222,7 +224,7 @@ for file in files_current:
         xs_a12_corr = np.average(np.array(pointsx), weights=weights_a12)
         ys_a12_corr = np.average(np.array(pointsy), weights=weights_a12)
 
-    stack_corrected = construct_RGB(R=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean), G=stack_corrected_f3_mean/np.nanmax(stack_corrected_f3_mean))
+    stack_corrected = construct_RGB(R=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean), G=stack_corrected_f3_mean/np.nanmax(stack_corrected_f3_mean), B=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean))
 
     f3_proj_mean = np.nanmean(stack_f3_mean, axis=0)
     f3_proj_mean[np.where(f3_proj_mean<1)] = np.nan

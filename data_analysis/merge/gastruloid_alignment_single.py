@@ -15,14 +15,12 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d
-import SimpleITK as sitk
 
-sigma=2
 weight_th=2
 path_data = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/merge/2024_07_22_DMSOmerged_Casp3/"
+path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/figures/figures_joshi_poster/merged/single_gastruloids_segmented/"
 
 channel_names = ["A12", "Casp3", "F3", "DAPI"]
-
 ch_F3 = channel_names.index("F3")
 ch_A12 = channel_names.index("A12")
 ch_Casp3 = channel_names.index("Casp3")
@@ -41,19 +39,9 @@ files_KO_72_6 = [file for file in files if all(map(file.__contains__, ["72+06", 
 files_WT_72_24 = [file for file in files if all(map(file.__contains__, ["72+24", "F3+WT"]))]
 files_KO_72_24 = [file for file in files if all(map(file.__contains__, ["72+24", "F3+KO"]))]
 
-conditions = [files_WT_48_6, files_KO_48_6, files_WT_48_24, files_KO_48_24, files_WT_72_6, files_KO_72_6, files_WT_72_24, files_KO_72_24]
-conditions_names = ["48+06_F3+WT", "48+06_F3+KO", "48+24_F3+WT", "48+24_F3+KO", "72+06_F3+WT", "72+06_F3+KO", "72+24_F3+WT", "72+24_F3+KO"]
+files_current = files_KO_72_24[2:]
 
-# for c, files_current in enumerate(conditions):
-c = 0
-files_current = conditions[c]
-print(c)
-cname = conditions_names[c]
-F3_PROJ = []
-A12_PROJ = []
-CASP3_PROJ = []
-borders = []
-for file in files_current[1:]:
+for file in files_current:
     path_data_file = path_data+file
                 
     hyperstack, metadata = tif_reader_5D(path_data_file)
@@ -70,12 +58,15 @@ for file in files_current[1:]:
         mp_threads=13,
     )
     ES(hyperstack[:,:,ch_DAPI].astype("float32"))
+    # for z in range(hyperstack[0,:,0].shape[0]):
+    #     print(z)
+    #     ES.plot_segmentation(0, z)
 
     hyperstack, metadata = tif_reader_5D(path_data_file)
     hyperstack = hyperstack.astype("float32")
     for ch in range(hyperstack.shape[2]):
         stack = hyperstack[0,:,ch]
-        print()
+
         for z in range(stack.shape[0]):
             st = stack[z]
             mask = ES.Backmask[0][z]
@@ -97,6 +88,9 @@ for file in files_current[1:]:
             else:
                 st[mask[:,1], mask[:,0]]=np.nan
                 hyperstack[0, z, ch] = st
+    # for z in range(hyperstack[0,:,0].shape[0]):
+    #     plt.imshow(hyperstack[0,z,ch_DAPI])
+    #     plt.show()
 
     stack_f3_mean = np.nanmean(hyperstack[0,:,ch_F3], axis=0)
     stack_a12_mean = np.nanmean(hyperstack[0,:,ch_A12], axis=0)
@@ -267,7 +261,6 @@ for file in files_current[1:]:
     stack_corrected = construct_RGB(R=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean), G=stack_corrected_f3_mean/np.nanmax(stack_corrected_f3_mean), B=stack_corrected_a12_mean/np.nanmax(stack_corrected_a12_mean))
     stack_corrected_casp = construct_RGB(R=stack_corrected_casp3_mean/(np.nanmax(stack_corrected_casp3_mean)*0.7),G=stack_corrected_casp3_mean/(np.nanmax(stack_corrected_casp3_mean)*0.7))
 
-
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     # fig, ax = plt.subplots(figsize=(6,15))
@@ -304,7 +297,7 @@ for file in files_current[1:]:
     ax3.plot(a12_proj_mean, c="magenta", lw=4)
     ax33 = ax3.twinx()
     ax33.plot(casp3_proj_mean, c=[238/255, 210/255, 0.0], lw=4)
-    comb = gaussian_filter1d(f3_proj_max*a12_proj_max, sigma=sigma)
+    comb = gaussian_filter1d(f3_proj_max*a12_proj_max, sigma=2)
     # ax3.plot(f3_proj_mean + a12_proj_mean, c="grey", lw=4)
 
     ax1.axvline(np.nanargmax(comb), c="white", lw=1, ls='--')
@@ -327,88 +320,8 @@ for file in files_current[1:]:
     ax2.set_yticks([])
 
     plt.tight_layout()
+    plt.savefig(path_figures+file[:-4]+".png")
+    plt.savefig(path_figures+file[:-4]+".svg")
+
     plt.show()
 
-    f3_proj_mean = np.nanmean(stack_f3_mean, axis=0)
-    f3_proj_mean[np.where(f3_proj_mean<1)] = np.nan
-    f3_proj_max = np.nanmean(stack_f3_max, axis=0)
-
-    a12_proj_mean = np.nanmean(stack_a12_mean, axis=0)
-    a12_proj_mean[np.where(a12_proj_mean<1)] = np.nan
-    a12_proj_max = np.nanmean(stack_a12_max, axis=0)
-
-    casp3_proj_mean = np.nanmean(stack_casp3_mean, axis=0)
-    casp3_proj_mean[np.where(casp3_proj_mean<0.1)] = np.nan
-    casp3_proj_max = np.nanmean(stack_casp3_max, axis=0)
-
-    comb = gaussian_filter1d(f3_proj_max*a12_proj_max, sigma=sigma)
-
-    F3_PROJ.append(f3_proj_mean)
-    A12_PROJ.append(a12_proj_mean)
-    CASP3_PROJ.append(casp3_proj_mean)
-    borders.append(np.argmax(comb))
-
-F3_SIGNALS = np.ones((len(borders), len(F3_PROJ[0])*2 + 1))*np.nan
-A12_SIGNALS = np.ones_like(F3_SIGNALS)*np.nan
-CASP3_SIGNALS = np.ones_like(F3_SIGNALS)*np.nan
-
-for b in range(len(borders)):
-    f3_signal = np.zeros(len(F3_PROJ[0])*2 + 1)
-    a12_signal = np.zeros_like(f3_signal)
-    casp3_signal = np.zeros_like(f3_signal)
-    center = len(F3_PROJ[0])
-    border = borders[b]
-    F3_SIGNALS[b, center-border:center] = F3_PROJ[b][:border]
-    F3_SIGNALS[b, center:2*center-border] = F3_PROJ[b][border:]
-
-    A12_SIGNALS[b, center-border:center] = A12_PROJ[b][:border]
-    A12_SIGNALS[b, center:2*center-border] = A12_PROJ[b][border:]
-
-    CASP3_SIGNALS[b, center-border:center] = CASP3_PROJ[b][:border]
-    CASP3_SIGNALS[b, center:2*center-border] = CASP3_PROJ[b][border:]
-
-
-center = len(F3_PROJ[0])
-
-f3_signal = np.nanmean(F3_SIGNALS, axis=0)
-f3_signal_std = np.nanstd(F3_SIGNALS, axis=0)
-
-a12_signal = np.nanmean(A12_SIGNALS, axis=0)
-a12_signal_std = np.nanstd(A12_SIGNALS, axis=0)
-
-casp3_signal = np.nanmean(CASP3_SIGNALS, axis=0)
-casp3_signal_std = np.nanstd(CASP3_SIGNALS, axis=0)
-
-x = [i for i in range(len(f3_signal))]
-
-fig, ax = plt.subplots()
-axc = ax.twinx()
-
-ax.axvline(center, c="black", lw=2, ls='--')
-
-ax.plot(x, f3_signal, color="green", lw=4)
-
-ax.fill_between(x, f3_signal - f3_signal_std, f3_signal + f3_signal_std, color="green", alpha=0.2)
-
-ax.plot(x, a12_signal, color="magenta", lw=4)
-ax.fill_between(x, a12_signal - a12_signal_std, a12_signal + a12_signal_std, color="magenta", alpha=0.2)
-
-axc.plot(x, casp3_signal, color=[238/255, 210/255, 0.0], lw=4)
-axc.fill_between(x, casp3_signal - casp3_signal_std, casp3_signal + casp3_signal_std, color=[238/255, 210/255, 0.0], alpha=0.2)
-ax.set_xlim(x[0],x[1])
-ax.set_title(cname)
-
-pix_res = 100/metadata["XYresolution"]
-
-xticks_left = [i for i in np.arange(center, 0.0, -pix_res) if i >=0]
-xticks_right = [i for i in np.arange(center, len(x), pix_res)]
-xticks = np.unique([*xticks_left, *xticks_right])
-
-xticks_labels = np.rint((xticks - center)*metadata["XYresolution"]).astype("int32")
-ax.set_xticks(xticks)
-ax.set_xticklabels(xticks_labels)
-
-ax.set_xlabel(r"distance to merge point ($\mu$m)")
-
-# plt.savefig(path_data+cname+".png")
-plt.show()
