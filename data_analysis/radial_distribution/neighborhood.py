@@ -3,6 +3,8 @@ from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_
 import numpy as np
 import matplotlib.pyplot as plt
 
+# test
+
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
@@ -20,7 +22,8 @@ mpl.rc('legend', fontsize=14)
 
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/neighborhood/"
 
-for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
+# for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
+for number_of_neighs in [5]:
     fig, ax = plt.subplots(2,3, figsize=(12,6), sharey=True, sharex='col')
     for ap, apo_stage in enumerate(["early", "mid", "late"]):
 
@@ -221,9 +224,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
 
                     area = np.mean(areas)
                     dim = 2*np.sqrt(area/np.pi)
-                    
-                    import numpy as np
-                
+                                    
                     ## Now contract the shape as much as we want. 
                     F3_dist = np.array(F3_dist)
                     A12_dist = np.array(A12_dist)
@@ -284,7 +285,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                     distances, neighs = nbrs.kneighbors(centers)
 
                     dist_th = (dim*xyres)*10000.0 #microns
-                    dist_th_near = (dim*xyres)*0.5
+                    dist_th_near = (dim*xyres)*0.25
                     
                     true_neighs = []
                     true_dists = []
