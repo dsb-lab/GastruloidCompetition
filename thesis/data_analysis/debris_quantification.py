@@ -167,19 +167,12 @@ for T, TIME in enumerate(TIMES):
             areas_F3[T][C].append(areas_f3)
             areas_A12[T][C].append(areas_a12)
 
-  
-import matplotlib as mpl
-plt.rcParams.update({
-    "text.usetex": True,
-})
-mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
-mpl.rc('font', size=16) 
-mpl.rc('axes', labelsize=16) 
-mpl.rc('xtick', labelsize=16) 
-mpl.rc('ytick', labelsize=16) 
-mpl.rc('legend', fontsize=16) 
-
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/counts/"
+
+all_files = []
+all_data = []
+all_names = ["file_name", "debris_F3", "debris_A12"]
+
 
 debris_F3 = []
 debris_F3_std = []
@@ -193,25 +186,65 @@ for T, TIME in enumerate(TIMES):
     debris_A12.append([])
     debris_A12_std.append([])
     for C, COND in enumerate(CONDS):
-        deb_f3_wt = []
-        for f in range(len(areas_F3[T][C])):
-            data = np.array(areas_F3[T][C][f])
-            deb_f3_wt.append(np.sum(data < 33.34)/len(data))
-        debris_F3[T].append(np.mean(deb_f3_wt))
-        debris_F3_std[T].append(np.std(deb_f3_wt))
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment_code, TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment_code, TIME, COND)
 
+        try: 
+            files = get_file_names(path_save_dir)
+        except: 
+            import os
+            os.mkdir(path_save_dir)
+            
+        ### GET FULL FILE NAME AND FILE CODE ###
+        files = get_file_names(path_data_dir)
+        print(files)
+        all_files = [*all_files, *files]
+
+        deb_f3_wt = []
         deb_a12_wt = []
-        for f in range(len(areas_A12[T][C])):
-            data = np.array(areas_A12[T][C][f])
-            deb_a12_wt.append(np.sum(data < 33.34)/len(data))
+        
+        for f in range(len(areas_F3[T][C])):
+            data = []
+            data_f3 = np.array(areas_F3[T][C][f])
+            deb_f3_wt.append(np.sum(data_f3 < 33.34)/len(data_f3))
+            data_a12 = np.array(areas_A12[T][C][f])
+            deb_a12_wt.append(np.sum(data_a12 < 33.34)/len(data_a12))
+            data = [deb_f3_wt[-1], deb_a12_wt[-1]]
+            all_data.append(data)
+        debris_F3[T].append(np.mean(deb_f3_wt))
+        debris_F3_std[T].append(np.std(deb_f3_wt))            
         debris_A12[T].append(np.mean(deb_a12_wt))
         debris_A12_std[T].append(np.std(deb_a12_wt))
 
+import csv
+# Output CSV file path
+output_file = path_figures+"data_counts_debris.csv"
+# Write to CSV
+with open(output_file, mode="w", newline="") as csvfile:
+    csv_writer = csv.writer(csvfile)
+    csv_writer.writerow(all_names)
+    
+    # Write the data rows
+    for file, values in zip(all_files, all_data):
+        csv_writer.writerow([file] + values)
+        
 debris_F3 = np.array(debris_F3)
 debris_F3_std = np.array(debris_F3_std)
 
 debris_A12 = np.array(debris_A12)
 debris_A12_std = np.array(debris_A12_std)
+
+
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=16) 
+mpl.rc('axes', labelsize=16) 
+mpl.rc('xtick', labelsize=16) 
+mpl.rc('ytick', labelsize=16) 
+mpl.rc('legend', fontsize=16) 
 
 fig, ax = plt.subplots(2,1, figsize=(3.5,6))
 ax[0].set_title("Debris")

@@ -250,7 +250,6 @@ for stage in stages:
                 area = np.mean(areas)
                 dim = 2*np.sqrt(area/np.pi)
 
-                ## Now contract the shape as much as we want. 
                 F3_dist = np.array(F3_dist)
                 A12_dist = np.array(A12_dist)
 
@@ -320,8 +319,60 @@ for stage in stages:
                 Casp3_F3_KO[-1].append(Casp3_F3_counts)
                 Casp3_A12_KO[-1].append(Casp3_A12_counts)
 
-
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/counts/"
+
+all_files = []
+all_data = []
+all_names = ["file_name", "F3", "A12", "apo_F3_early", "apo_A12_early", "apo_F3_mid", "apo_A12_mid", "apo_F3_late", "apo_A12_late"]
+for T, TIME in enumerate(TIMES):
+    for C,COND in enumerate(CONDS):
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment, TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment, TIME, COND)
+
+        try: 
+            files = get_file_names(path_save_dir)
+        except: 
+            import os
+            os.mkdir(path_save_dir)
+            
+        ### GET FULL FILE NAME AND FILE CODE ###
+        files = get_file_names(path_data_dir)
+        print(files)
+        all_files = [*all_files, *files]
+        for f, file in enumerate(files):
+            data = []
+            if COND == "WT":
+                data.append(F3_WT[0][T][f])
+                data.append(A12_WT[0][T][f])
+                data.append(Casp3_F3_WT[0][T][f])
+                data.append(Casp3_A12_WT[0][T][f])
+                data.append(Casp3_F3_WT[1][T][f])
+                data.append(Casp3_A12_WT[1][T][f])
+                data.append(Casp3_F3_WT[2][T][f])
+                data.append(Casp3_A12_WT[2][T][f])
+            elif COND == "KO":
+                data.append(F3_KO[0][T][f])
+                data.append(A12_KO[0][T][f])
+                data.append(Casp3_F3_KO[0][T][f])
+                data.append(Casp3_A12_KO[0][T][f])
+                data.append(Casp3_F3_KO[1][T][f])
+                data.append(Casp3_A12_KO[1][T][f])
+                data.append(Casp3_F3_KO[2][T][f])
+                data.append(Casp3_A12_KO[2][T][f])
+            all_data.append(data)
+
+import csv
+# Output CSV file path
+output_file = path_figures+"data_counts.csv"
+# Write to CSV
+with open(output_file, mode="w", newline="") as csvfile:
+    csv_writer = csv.writer(csvfile)
+    csv_writer.writerow(all_names)
+    
+    # Write the data rows
+    for file, values in zip(all_files, all_data):
+        csv_writer.writerow([file] + values)
+
 
 import matplotlib as mpl
 plt.rcParams.update({
