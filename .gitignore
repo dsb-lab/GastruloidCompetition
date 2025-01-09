@@ -6,3 +6,4 @@ pyplot
 .vscode
 others
 results
+*.doc*
