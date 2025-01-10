@@ -21,23 +21,22 @@ mpl.rc('ytick', labelsize=14)
 mpl.rc('legend', fontsize=14) 
 
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/neighborhood/"
-apo_stage = "early"
 # for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
-for number_of_neighs in [5]:
-        
-    # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    TIMES = ["48hr", "72hr", "96hr"]
-    CONDS = ["WT", "KO"]
-    
-    filenames = []
-    F3_neigh = []
-    A12_neigh = []
-    F3_apo_early_neigh = []
-    F3_apo_mid_neigh = []
-    F3_apo_late_neigh = []
-    A12_apo_early_neigh = []
-    A12_apo_mid_neigh = []
-    A12_apo_late_neigh = []
+number_of_neighs = 5        
+# ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
+TIMES = ["48hr", "72hr", "96hr"]
+CONDS = ["WT", "KO"]
+
+filenames = []
+F3_neigh = []
+A12_neigh = []
+F3_apo_early_neigh = []
+F3_apo_mid_neigh = []
+F3_apo_late_neigh = []
+A12_apo_early_neigh = []
+A12_apo_mid_neigh = []
+A12_apo_late_neigh = []
+for ap, apo_stage in enumerate(["early", "mid", "late"]):
     for TTT, TIME in enumerate(TIMES):
         for CCC, COND in enumerate(CONDS):
             path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
@@ -360,8 +359,8 @@ for number_of_neighs in [5]:
                 neighs_fates_Casp3_A12_sum[f] /= np.sum(neighs_fates_Casp3_A12_sum[f])
                 
                 filenames.append(file)
-                F3_neigh.append(neighs_fates_F3_sum[f])
-                A12_neigh.append(neighs_fates_A12_sum[f])
+                F3_neigh.append(neighs_fates_F3_sum[f,1])
+                A12_neigh.append(neighs_fates_A12_sum[f,1])
 
                 if apo_stage=="early":
                     F3_apo_early_neigh.append(neighs_fates_Casp3_F3_sum[f,1])
@@ -372,4 +371,24 @@ for number_of_neighs in [5]:
                 elif apo_stage=="late":
                     F3_apo_late_neigh.append(neighs_fates_Casp3_F3_sum[f,1])
                     A12_apo_late_neigh.append(neighs_fates_Casp3_A12_sum[f,1])
-            
+
+
+
+
+import csv
+output_file = path_figures+"neigh_{}_A12frac.csv".format(number_of_neighs)
+
+colnames = ["file", "F3", "A12", "apo_F3_early", "apo_A12_early", "apo_F3_mid", "apo_A12_mid", "apo_F3_late", "apo_A12_late"]
+full_data = [colnames]
+for f in range(len(filenames[0:22])):
+    dat = [filenames[f], F3_neigh[f], A12_neigh[f], F3_apo_early_neigh[f], A12_apo_early_neigh[f], F3_apo_mid_neigh[f], A12_apo_mid_neigh[f], F3_apo_late_neigh[f], A12_apo_late_neigh[f]]
+    full_data.append(dat)
+
+# Output CSV file path
+
+# Write to CSV
+with open(output_file, mode="w", newline="") as csvfile:
+    csv_writer = csv.writer(csvfile)
+    # Write the header
+    csv_writer.writerows(full_data)
+
