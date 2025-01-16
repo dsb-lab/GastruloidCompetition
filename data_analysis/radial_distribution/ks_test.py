@@ -59,11 +59,11 @@ for ap, apo_stage in enumerate(apo_stages):
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
 
             file_path = path_save_results+embcode
-            dists_contour_Casp3_current = np.load(file_path+"_dists_contour_Casp3.npy")
+            dists_contour_Casp3_current = np.load(file_path+"_dists_contour_Casp3_F3.npy")
             dists_contour_A12_current = np.load(file_path+"_dists_contour_A12.npy")
             dists_contour_F3_current = np.load(file_path+"_dists_contour_F3.npy")
             
-            dists_centroid_Casp3_current = np.load(file_path+"_dists_centroid_Casp3.npy")
+            dists_centroid_Casp3_current = np.load(file_path+"_dists_centroid_Casp3_F3.npy")
             dists_centroid_A12_current = np.load(file_path+"_dists_centroid_A12.npy")
             dists_centroid_F3_current = np.load(file_path+"_dists_centroid_F3.npy")
             
@@ -89,29 +89,32 @@ for ap, apo_stage in enumerate(apo_stages):
         if "96hr" in path_data_dir:
             channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
-        for f, file in enumerate(files):
-            path_data = path_data_dir+file
-            file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
+        # for f, file in enumerate(files):
+        #     path_data = path_data_dir+file
+        #     file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
 
-            file_path = path_save_results+embcode
-            dists_contour_Casp3_current = np.load(file_path+"_dists_contour_Casp3.npy")
-            dists_contour_A12_current = np.load(file_path+"_dists_contour_A12.npy")
-            dists_contour_F3_current = np.load(file_path+"_dists_contour_F3.npy")
+        #     file_path = path_save_results+embcode
+        #     dists_contour_Casp3_current = np.load(file_path+"_dists_contour_Casp3_F3.npy")
+        #     dists_contour_A12_current = np.load(file_path+"_dists_contour_A12.npy")
+        #     dists_contour_F3_current = np.load(file_path+"_dists_contour_F3.npy")
             
-            dists_centroid_Casp3_current = np.load(file_path+"_dists_centroid_Casp3.npy")
-            dists_centroid_A12_current = np.load(file_path+"_dists_centroid_A12.npy")
-            dists_centroid_F3_current = np.load(file_path+"_dists_centroid_F3.npy")
+        #     dists_centroid_Casp3_current = np.load(file_path+"_dists_centroid_Casp3_F3.npy")
+        #     dists_centroid_A12_current = np.load(file_path+"_dists_centroid_A12.npy")
+        #     dists_centroid_F3_current = np.load(file_path+"_dists_centroid_F3.npy")
             
-            dists_contour_Casp3 = [*dists_contour_Casp3, *dists_contour_Casp3_current]
-            dists_contour_A12 = [*dists_contour_A12, *dists_contour_A12_current]
-            dists_contour_F3 = [*dists_contour_F3, *dists_contour_F3_current]
+        #     dists_contour_Casp3 = [*dists_contour_Casp3, *dists_contour_Casp3_current]
+        #     dists_contour_A12 = [*dists_contour_A12, *dists_contour_A12_current]
+        #     dists_contour_F3 = [*dists_contour_F3, *dists_contour_F3_current]
             
-            dists_centroid_Casp3 = [*dists_centroid_Casp3, *dists_centroid_Casp3_current]
-            dists_centroid_A12 = [*dists_centroid_A12, *dists_centroid_A12_current]
-            dists_centroid_F3 = [*dists_centroid_F3, *dists_centroid_F3_current]
+        #     dists_centroid_Casp3 = [*dists_centroid_Casp3, *dists_centroid_Casp3_current]
+        #     dists_centroid_A12 = [*dists_centroid_A12, *dists_centroid_A12_current]
+        #     dists_centroid_F3 = [*dists_centroid_F3, *dists_centroid_F3_current]
             
         dists_contour = np.array([*dists_contour_A12, *dists_contour_F3])
         dists_centroid = np.array([*dists_centroid_A12, *dists_centroid_F3])
+
+        dists_contour = np.array(dists_contour_F3)
+        dists_centroid = np.array(dists_centroid_F3)
 
         dists = dists_centroid / (dists_centroid + dists_contour)
         dists_apo = np.array(dists_centroid_Casp3) / (np.array(dists_centroid_Casp3) + np.array(dists_contour_Casp3))
@@ -126,6 +129,7 @@ for ap, apo_stage in enumerate(apo_stages):
         dists_apo = DISTS_apo[t]
 
         sample_size = len(dists_apo)
+        print(sample_size)
         max_samples = np.floor(len(dists) / sample_size).astype("int32")
 
         KS_dists = []
@@ -159,7 +163,7 @@ for ap, apo_stage in enumerate(apo_stages):
         ax[ap, t].spines[['left', 'right', 'top']].set_visible(False)
         ax[ap, t].set_yticks([])
     
-plt.savefig(path_figures+"KS.svg")
-plt.savefig(path_figures+"KS.pdf")
+# plt.savefig(path_figures+"KS.svg")
+# plt.savefig(path_figures+"KS.pdf")
 plt.tight_layout()
 plt.show()

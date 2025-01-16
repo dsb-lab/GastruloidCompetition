@@ -206,6 +206,44 @@ for TIME in TIMES:
                 CT_Casp3.load()
                 # CT_Casp3.plot_tracking(plot_args=plot_args)
 
+                import numpy as np
+
+                ### CORRECT DISTRIBUTIONS ###
+
+                areas = []
+
+                F3_dist = []
+                for cell in CT_F3.jitcells: 
+                    for zid, z in enumerate(cell.zs[0]):
+                        mask = cell.masks[0][zid]
+                        img = CT_F3.hyperstack[0,z, channel_names.index("F3")]
+                        F3_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
+                        areas.append(len(mask))
+                        
+                A12_dist = []
+                for cell in CT_A12.jitcells: 
+                    for zid, z in enumerate(cell.zs[0]):
+                        mask = cell.masks[0][zid]
+                        areas.append(len(mask))
+                        img = CT_A12.hyperstack[0,z, channel_names.index("A12")]
+                        A12_dist.append(np.mean(img[mask[:,1], mask[:,0]]))
+
+                area = np.mean(areas)
+                dim = 2*np.sqrt(area/np.pi)
+
+                ## Now contract the shape as much as we want. 
+                F3_dist = np.array(F3_dist)
+                A12_dist = np.array(A12_dist)
+
+                mdiff = np.mean(F3_dist) - np.mean(A12_dist)
+                if mdiff > 0:
+                    A12_dist += mdiff
+                else: 
+                    F3_dist -= mdiff 
+
+                zres = CT_F3.metadata["Zresolution"]
+                xyres = CT_F3.metadata["XYresolution"]
+
                 points = []
                 zs = []
                 for cell in CT_F3.jitcells:
@@ -243,11 +281,12 @@ for TIME in TIMES:
                     centers.append(center)
 
                 centers = np.array(centers)
+                
                 minz = int(np.min(centers[:,0]))
                 maxz = int(np.max(centers[:,0]))
 
-                centers = np.array(centers)*resolutions
-                centroid = np.mean(centers, axis=0)
+                centers = centers*resolutions
+                centroid = np.mean(centers*resolutions, axis=0)
 
                 from qlivecell import EmbryoSegmentation, tif_reader_5D
                 hyperstack, metadata = tif_reader_5D(path_data)
@@ -267,7 +306,7 @@ for TIME in TIMES:
                         smoothing=20,
                         trange=None,
                         zrange=range(minz, maxz+1),
-                        mp_threads=None,
+                        mp_threads=14,
                     )
 
                 ES(hyperstack_seg)
@@ -293,9 +332,39 @@ for TIME in TIMES:
                 print("got contours")
                 
                 centers_Casp3 = []
+                centers_Casp3_F3 = []
+                centers_Casp3_A12 = []
                 for cell in CT_Casp3.jitcells:
                     centers_Casp3.append(cell.centers[0])
+                    casp3 = []
+                    a12 = []
+                    f3 = []
+                    for zid, z in enumerate(cell.zs[0]):
+                        mask = cell.masks[0][zid]
+                        img = CT_Casp3.hyperstack[0,z, channel_names.index("Casp3")]
+                        casp3.append(np.mean(img[mask[:,1], mask[:,0]]))
+                        
+                        img = CT_Casp3.hyperstack[0,z, channel_names.index("A12")]
+                        a12.append(np.mean(img[mask[:,1], mask[:,0]]))
+                        
+                        img = CT_Casp3.hyperstack[0,z, channel_names.index("F3")]
+                        f3.append(np.mean(img[mask[:,1], mask[:,0]]))
+
+                    zz = np.int64(cell.centers[0][0])
+                    idx = cell.zs[0].index(zz)
+                    if mdiff > 0:
+                        a12[idx] += mdiff
+                    else: 
+                        f3[idx] -= mdiff
+    
+                    if f3[idx] > a12[idx]:
+                        centers_Casp3_F3.append(cell.centers[0])
+                    else:
+                        centers_Casp3_A12.append(cell.centers[0])
+
                 centers_Casp3 = np.array(centers_Casp3)
+                centers_Casp3_F3 = np.array(centers_Casp3_F3)
+                centers_Casp3_A12 = np.array(centers_Casp3_A12)
 
                 centers_A12 = []
                 for cell in CT_A12.jitcells:
@@ -308,16 +377,40 @@ for TIME in TIMES:
                 centers_F3 = np.array(centers_F3)
 
                 contour_points3D = contour_points3D*resolutions
-                centers_Casp3 = centers_Casp3*resolutions
+                
+                if len(centers_Casp3)!= 0:
+                    centers_Casp3 = centers_Casp3*resolutions
+                if len(centers_Casp3_F3)!= 0:
+                    centers_Casp3_F3 = centers_Casp3_F3*resolutions
+                if len(centers_Casp3_A12)!= 0:
+                    centers_Casp3_A12 = centers_Casp3_A12*resolutions
+
                 centers_A12 = centers_A12*resolutions
                 centers_F3 = centers_F3*resolutions
 
                 print("got centers")
 
-                dists_Casp3 = compute_dists(np.array(centers_Casp3), np.array(contour_points3D))
-                closests_Casp3_ids = np.argmin(dists_Casp3, axis=1)
-                closests_contour_points_Casp3 = np.array([contour_points3D[i] for i in closests_Casp3_ids])
-
+                if len(centers_Casp3)!=0:
+                    dists_Casp3 = compute_dists(np.array(centers_Casp3), np.array(contour_points3D))
+                    closests_Casp3_ids = np.argmin(dists_Casp3, axis=1)
+                    closests_contour_points_Casp3 = np.array([contour_points3D[i] for i in closests_Casp3_ids])
+                else: 
+                    closests_Casp3_ids = np.array([])
+                    
+                if len(centers_Casp3_F3)!=0:
+                    dists_Casp3_F3 = compute_dists(np.array(centers_Casp3_F3), np.array(contour_points3D))
+                    closests_Casp3_ids_F3 = np.argmin(dists_Casp3_F3, axis=1)
+                    closests_contour_points_Casp3_F3 = np.array([contour_points3D[i] for i in closests_Casp3_ids_F3])
+                else: 
+                    closests_Casp3_ids_F3 = np.array([])
+                    
+                if len(centers_Casp3_A12)!=0:
+                    dists_Casp3_A12 = compute_dists(np.array(centers_Casp3_A12), np.array(contour_points3D))
+                    closests_Casp3_ids_A12 = np.argmin(dists_Casp3_A12, axis=1)
+                    closests_contour_points_Casp3_A12 = np.array([contour_points3D[i] for i in closests_Casp3_ids_A12])
+                else: 
+                    closests_Casp3_ids_A12 = np.array([])
+                    
                 dists_A12 = compute_dists(np.array(centers_A12), np.array(contour_points3D))
                 closests_A12_ids = np.argmin(dists_A12, axis=1)
                 closests_contour_points_A12 = np.array([contour_points3D[i] for i in closests_A12_ids])
@@ -327,43 +420,30 @@ for TIME in TIMES:
                 closests_contour_points_F3 = np.array([contour_points3D[i] for i in closests_F3_ids])
 
                 dists_contour_Casp3_current = [dists_Casp3[i, closests_Casp3_ids[i]] for i in range(len(centers_Casp3))]
+                dists_contour_Casp3_current_F3 = [dists_Casp3_F3[i, closests_Casp3_ids_F3[i]] for i in range(len(centers_Casp3_F3))]
+                dists_contour_Casp3_current_A12 = [dists_Casp3_A12[i, closests_Casp3_ids_A12[i]] for i in range(len(centers_Casp3_A12))]
+
                 dists_contour_A12_current = [dists_A12[i, closests_A12_ids[i]] for i in range(len(centers_A12))]
                 dists_contour_F3_current = [dists_F3[i, closests_F3_ids[i]] for i in range(len(centers_F3))]
+                
                 dists_centroid_Casp3_current = [compute_distance_xyz(center, centroid) for center in centers_Casp3]
+                dists_centroid_Casp3_current_F3 = [compute_distance_xyz(center, centroid) for center in centers_Casp3_F3]
+                dists_centroid_Casp3_current_A12 = [compute_distance_xyz(center, centroid) for center in centers_Casp3_A12]
+
                 dists_centroid_A12_current = [compute_distance_xyz(center, centroid) for center in centers_A12]
                 dists_centroid_F3_current = [compute_distance_xyz(center, centroid) for center in centers_F3]
 
                 file_path = path_save_results+embcode
                 np.save(file_path+"_dists_contour_Casp3", dists_contour_Casp3_current, allow_pickle=False)
+                np.save(file_path+"_dists_contour_Casp3_F3", dists_contour_Casp3_current_F3, allow_pickle=False)
+                np.save(file_path+"_dists_contour_Casp3_A12", dists_contour_Casp3_current_A12, allow_pickle=False)
+
                 np.save(file_path+"_dists_contour_A12", dists_contour_A12_current, allow_pickle=False)
                 np.save(file_path+"_dists_contour_F3", dists_contour_F3_current, allow_pickle=False)
                 
                 np.save(file_path+"_dists_centroid_Casp3", dists_centroid_Casp3_current, allow_pickle=False)
+                np.save(file_path+"_dists_centroid_Casp3_F3", dists_centroid_Casp3_current_F3, allow_pickle=False)
+                np.save(file_path+"_dists_centroid_Casp3_A12", dists_centroid_Casp3_current_A12, allow_pickle=False)
+
                 np.save(file_path+"_dists_centroid_A12", dists_centroid_A12_current, allow_pickle=False)
                 np.save(file_path+"_dists_centroid_F3", dists_centroid_F3_current, allow_pickle=False)
-                
-                dists_contour_Casp3 = [*dists_contour_Casp3, *dists_contour_Casp3_current]
-                dists_contour_A12 = [*dists_contour_A12, *dists_contour_A12_current]
-                dists_contour_F3 = [*dists_contour_F3, *dists_contour_F3_current]
-                
-                dists_centroid_Casp3 = [*dists_centroid_Casp3, *dists_centroid_Casp3_current]
-                dists_centroid_A12 = [*dists_centroid_A12, *dists_centroid_A12_current]
-                dists_centroid_F3 = [*dists_centroid_F3, *dists_centroid_F3_current]
-
-
-    # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots(1,2, figsize=(10,5))
-
-    # ax[0].hist(dists_contour_F3, color="green", alpha=0.5, bins=50)
-    # ax[0].hist(dists_contour_A12, color="magenta", alpha=0.5, bins=50)
-    # # ax[0].hist(dists_contour_Casp3, color="yellow")
-    # ax[0].set_xlabel("distance to closest embryo border")
-    # ax[0].set_yticks([])
-    # ax[1].hist(dists_centroid_F3, color="green", alpha=0.5, bins=50)
-    # ax[1].hist(dists_centroid_A12, color="magenta", alpha=0.5, bins=50)
-    # # ax[1].hist(dists_centroid_Casp3, color="yellow")
-    # ax[1].set_xlim(0,100)
-    # ax[1].set_xlabel("distance to embryo centroid")
-    # ax[1].set_yticks([])
-    # plt.show()
-

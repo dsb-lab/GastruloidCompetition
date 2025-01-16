@@ -22,8 +22,7 @@ mpl.rc('legend', fontsize=14)
 
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/neighborhood/"
 
-# for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
-for number_of_neighs in [5]:
+for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
     fig, ax = plt.subplots(2,3, figsize=(12,6), sharey=True, sharex='col')
     for ap, apo_stage in enumerate(["early", "mid", "late"]):
 

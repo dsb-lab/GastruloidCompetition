@@ -286,7 +286,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                     distances, neighs = nbrs.kneighbors(centers)
 
                     dist_th = (dim*xyres)*1000.0 #microns
-                    dist_th_near = (dim*xyres)*0.5
+                    dist_th_near = (dim*xyres)*0.25
                     
                     true_neighs = []
                     true_dists = []
