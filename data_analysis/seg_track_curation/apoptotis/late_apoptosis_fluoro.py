@@ -9,6 +9,7 @@ from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 experiment_code = '2023_11_17_Casp3'
+experiment_code = "2024_03_Casp3"
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 # TIMES = ["48hr", "60hr", "72hr", "96hr"]
@@ -48,6 +49,8 @@ for T, TIME in enumerate(TIMES):
         if "96hr" in path_data_dir:
             channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
+        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+        
         try: 
             files = get_file_names(path_save_dir)
         except: 
@@ -180,7 +183,7 @@ for T, TIME in enumerate(TIMES):
                 mask = cell.masks[0][zcid]
                 ints = np.mean(CT_A12.hyperstack[0,zc,ch_Casp3,:,:][mask[:,1], mask[:,0]])
                 area = len(mask)* CT_F3.CT_info.xyresolution**2
-                if area < 33.34:
+                if area < 36.7:
                     intens_f3_debris.append(ints)
                 else:
                     intens_f3_cells.append(ints)
@@ -197,7 +200,7 @@ for T, TIME in enumerate(TIMES):
                 mask = cell.masks[0][zcid]
                 ints = np.mean(CT_A12.hyperstack[0,zc,ch_Casp3,:,:][mask[:,1], mask[:,0]])
                 area = len(mask)* CT_A12.CT_info.xyresolution**2
-                if area < 33.34:
+                if area < 36.7:
                     intens_a12_debris.append(ints)
                 else:
                     intens_a12_cells.append(ints)

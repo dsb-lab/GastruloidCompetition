@@ -8,10 +8,10 @@ from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-experiment = "2023_11_17_Casp3"
-# experiment = "2024_03_Casp3"
-TIMES = ["48hr", "72hr", "96hr"]
-# TIMES = ["48hr", "60hr", "72hr", "96hr"]
+# experiment = "2023_11_17_Casp3"
+experiment = "2024_03_Casp3"
+# TIMES = ["48hr", "72hr", "96hr"]
+TIMES = ["48hr", "60hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 
 fig, ax = plt.subplots(2,4, figsize=(3.5*4,6))
@@ -57,10 +57,10 @@ for stage in stages:
             FATES = []
             LABS = []
 
-            # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
             channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-            if "96hr" in path_data_dir:
-                channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+            # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+            # if "96hr" in path_data_dir:
+            #     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
             F3_counts = []
             Casp3_F3_counts = []
@@ -363,7 +363,7 @@ for T, TIME in enumerate(TIMES):
 
 import csv
 # Output CSV file path
-output_file = path_figures+"data_counts.csv"
+output_file = path_figures+"data_counts_{}.csv".format(experiment)
 # Write to CSV
 with open(output_file, mode="w", newline="") as csvfile:
     csv_writer = csv.writer(csvfile)
@@ -486,8 +486,8 @@ for st, stage in enumerate(stages):
     ax[1, st+1].set_xticklabels(TIMES)
 
 plt.tight_layout()
-plt.savefig(path_figures+"counts_apo.svg")
-plt.savefig(path_figures+"counts_apo.pdf")
+plt.savefig(path_figures+"counts_apo_{}.svg".format(experiment))
+plt.savefig(path_figures+"counts_apo_{}.pdf".format(experiment))
 plt.show()
 
 barwidth = 0.5
@@ -673,8 +673,8 @@ ax[3].set_xticks(x, TIMES)
 ax[3].spines[['right', 'top']].set_visible(False)
 ax[3].legend()
 plt.tight_layout()
-plt.savefig(path_figures+"counts_comparison.svg")
-plt.savefig(path_figures+"counts_comparison.pdf")
+plt.savefig(path_figures+"counts_comparison_{}.svg".format(experiment))
+plt.savefig(path_figures+"counts_comparison_{}.pdf".format(experiment))
 plt.show()
 
 

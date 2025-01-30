@@ -8,7 +8,8 @@ from qlivecell import remove_small_cells, plot_cell_sizes, correct_path
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
-experiment_code = '2023_11_17_Casp3'
+# experiment_code = '2023_11_17_Casp3'
+experiment_code = "2024_03_Casp3"
 
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 # TIMES = ["48hr", "60hr", "72hr", "96hr"]
@@ -38,10 +39,11 @@ for T, TIME in enumerate(TIMES):
         path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment_code, TIME, COND)
         path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects_debris/{}/{}/'.format(experiment_code,TIME, COND)
 
-        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-        if "96hr" in path_data_dir:
-            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+        # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+        # if "96hr" in path_data_dir:
+        #     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
+        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
         try: 
             files = get_file_names(path_save_dir)
         except: 
@@ -282,6 +284,6 @@ labels=[labels1[0], labels2[0], labels1[1]]
 ax[3].legend(handles=handles, labels=labels, loc='upper right')
 
 plt.tight_layout()
-plt.savefig(path_figures+"debris_threshold.svg")
-plt.savefig(path_figures+"debris_threshold.pdf")
+# plt.savefig(path_figures+"debris_threshold.svg")
+# plt.savefig(path_figures+"debris_threshold.pdf")
 plt.show()

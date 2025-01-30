@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
+from qlivecell import get_file_name, cellSegTrack, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -10,6 +10,7 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 experiment = "2023_11_17_Casp3"
 experiment = "2024_03_Casp3"
+
 TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
 stage = "late"
@@ -116,8 +117,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_F3.run()
-            CT_A12.plot(plot_args=plot_args)
+            CT_F3.load()
             
             ch = channel_names.index("A12")
             batch_args = {
@@ -150,8 +150,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_A12.run()
-            CT_A12.plot(plot_args=plot_args)
+            CT_A12.load()
 
             ch = channel_names.index("Casp3")
             chans = [ch]
@@ -191,7 +190,7 @@ for TIME in TIMES:
                 channels=chans
             )
 
-            CT_Casp3.run()
+            CT_Casp3.load()
 
             plot_args = {
                 'plot_layout': (1,1),
@@ -202,11 +201,8 @@ for TIME in TIMES:
                 'channels':[1,0,3],
                 'min_outline_length':75,
             }
-            
-            for cell in CT_Casp3.jitcells:
-                CT_Casp3._del_cel(cell.label)
-            
-            CT_Casp3.plot(plot_args=plot_args)
+
+            # CT_Casp3.plot_tracking(plot_args=plot_args)
 
             
             F3_counts.append(len(CT_F3.jitcells))
