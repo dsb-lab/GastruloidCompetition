@@ -21,7 +21,8 @@ mpl.rc('ytick', labelsize=14)
 mpl.rc('legend', fontsize=14) 
 
 path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/neighborhood/"
-
+# experiment = "2023_11_17_Casp3"
+experiment = "2024_03_Casp3"
 for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
     fig, ax = plt.subplots(2,3, figsize=(12,6), sharey=True, sharex='col')
     for ap, apo_stage in enumerate(["early", "mid", "late"]):
@@ -32,14 +33,15 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
         NEIGHS_A12_apo = [[], []]
             
         # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-        TIMES = ["48hr", "72hr", "96hr"]
+        # TIMES = ["48hr", "72hr", "96hr"]
+        TIMES = ["48hr", "60hr", "72hr", "96hr"]
         CONDS = ["WT", "KO"]
         
         for TTT, TIME in enumerate(TIMES):
             for CCC, COND in enumerate(CONDS):
-                path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
-                path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
-            
+                path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment, TIME, COND)
+                path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment, TIME, COND)
+
                 try: 
                     files = get_file_names(path_save_dir)
                 except: 
@@ -50,8 +52,9 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                 files_data = get_file_names(path_data_dir)
 
                 channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-                if "96hr" in path_data_dir:
-                    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+                # if "96hr" in path_data_dir:
+                #     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
                 neighs_fates_F3_sum = np.zeros((len(files_data), 2))
                 neighs_fates_A12_sum = np.zeros((len(files_data), 2))
@@ -284,7 +287,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                     distances, neighs = nbrs.kneighbors(centers)
 
                     dist_th = (dim*xyres)*10000.0 #microns
-                    dist_th_near = (dim*xyres)*0.25
+                    dist_th_near = (dim*xyres)
                     
                     true_neighs = []
                     true_dists = []
@@ -383,7 +386,8 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
         A12s_apo_mean_A12_neigh_KO = np.array([np.nanmean(NEIGHS_A12_apo[1][i][:, 1]) for i in range(len(TIMES))])
 
 
-        conds = np.array([48, 72, 96])
+        # conds = np.array([48, 72, 96])
+        conds = np.array([48, 60, 72, 96])
 
         ax[0, ap].set_title("{} apoptotis".format(apo_stage))
         ax[0, ap].plot(conds, F3s_mean_A12_neigh_WT, color=[0.9,0.0,0.9], lw=4, label="F3")
@@ -409,6 +413,6 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
             ax[1, ap].legend()
         
     plt.tight_layout()
-    plt.savefig(path_figures+"neighborhood_{}.svg".format(number_of_neighs))
-    plt.savefig(path_figures+"neighborhood_{}.pdf".format(number_of_neighs))
+    plt.savefig(path_figures+"neighborhood_{}_{}.svg".format(experiment, number_of_neighs))
+    plt.savefig(path_figures+"neighborhood_{}_{}.pdf".format(experiment, number_of_neighs))
 plt.show()
