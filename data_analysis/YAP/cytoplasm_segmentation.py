@@ -3,18 +3,13 @@ from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_
 import numpy as np
 import matplotlib.pyplot as plt
 
-### LOAD STARDIST MODEL ###
-# from stardist.models import StarDist2D
-# model = StarDist2D.from_pretrained('2D_versatile_fluo')
-
 from cellpose import models
-# model  = models.CellposeModel(gpu=True, pretrained_model='/home/pablo/Desktop/PhD/projects/Data/models/cellpose/blasto')
 
 model = models.CellposeModel(gpu=True, model_type='cyto3')
 channel_names = ["A12", "GPI-GFP", "YAP", "DAPI"]
 
-path_data_dir = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/YAP/2025_02_02_AiryscMultipl_FastMediumQuality_Files/WT/"
-path_save_dir = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/YAP/segmentation_results/WT/"
+path_data_dir = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/YAP/2025_02_02_AiryscMultipl_FastMediumQuality_Files/KO8_ABonly/"
+path_save_dir = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/YAP/segmentation_results/KO8_ABonly/"
 
 try: 
     files = get_file_names(path_save_dir)
@@ -250,7 +245,6 @@ bins=50
 ax.hist(np.array(nuc_quant)/cyt_quant, label="N/C", alpha=0.5, bins=bins, color="grey")
 ax.legend()
 plt.show()
-
 
 fig, ax = plt.subplots()
 bins=40
