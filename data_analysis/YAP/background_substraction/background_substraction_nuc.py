@@ -68,3 +68,5 @@ for COND in CONDITIONS:
 fig, ax = plt.subplots()
 ax.hist(YAP_quant, bins=150)
 plt.show()
+
+YAP_nuc_th = 10193.577140181687
