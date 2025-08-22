@@ -25,6 +25,8 @@ def compute_dists(points1, points2):
     return dists
 
 TIMES = ["48hr", "72hr", "96hr"]
+TIMES = ["96hr"]
+
 CONDS = ["WT", "KO"]
 apo_stages = ["early", "mid", "late"]
 
@@ -310,9 +312,9 @@ for TIME in TIMES:
                     )
 
                 ES(hyperstack_seg)
-                # ES.plot_segmentation(0, minz + 2)
-                # ES.plot_segmentation(0, z_plot)
-                # ES.plot_segmentation(0, maxz - 2)
+                ES.plot_segmentation(0, minz + 2)
+                ES.plot_segmentation(0, z_plot)
+                ES.plot_segmentation(0, maxz - 2)
 
                 
                 import numpy as np
