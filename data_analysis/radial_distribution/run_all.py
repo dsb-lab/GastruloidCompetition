@@ -25,11 +25,16 @@ def compute_dists(points1, points2):
     return dists
 
 TIMES = ["48hr", "72hr", "96hr"]
+TIMES = ["48hr", "72hr", "96hr"]
+
 CONDS = ["WT", "KO"]
 apo_stages = ["early", "mid", "late"]
+apo_stages = ["early"]
 
 for TIME in TIMES:
+    print(TIME)
     for COND in CONDS:
+        print(COND)
         if TIME=="96hr":
             if COND=="KO":
                 binths = [6,10,10,10]
@@ -63,6 +68,8 @@ for TIME in TIMES:
             dists_centroid_F3 = []
 
             for f, file in enumerate(files):
+                print(file)
+                if f<2: continue
                 path_data = path_data_dir+file
                 file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
                 path_save = correct_path(path_save_dir+embcode)
@@ -295,6 +302,7 @@ for TIME in TIMES:
 
                 z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
                 
+                
                 ES = EmbryoSegmentation(
                         hyperstack_seg,
                         ksize=5,
@@ -310,9 +318,9 @@ for TIME in TIMES:
                     )
 
                 ES(hyperstack_seg)
-                # ES.plot_segmentation(0, minz + 2)
-                # ES.plot_segmentation(0, z_plot)
-                # ES.plot_segmentation(0, maxz - 2)
+                ES.plot_segmentation(0, minz + 4)
+                ES.plot_segmentation(0, z_plot)
+                ES.plot_segmentation(0, maxz - 4)
 
                 
                 import numpy as np
