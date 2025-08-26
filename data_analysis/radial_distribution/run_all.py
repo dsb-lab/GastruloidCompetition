@@ -25,11 +25,8 @@ def compute_dists(points1, points2):
     return dists
 
 TIMES = ["48hr", "72hr", "96hr"]
-TIMES = ["48hr", "72hr", "96hr"]
-
 CONDS = ["WT", "KO"]
 apo_stages = ["early", "mid", "late"]
-apo_stages = ["early"]
 
 for TIME in TIMES:
     print(TIME)
@@ -37,41 +34,30 @@ for TIME in TIMES:
         print(COND)
         if TIME=="96hr":
             if COND=="KO":
-                binths = [6,10,10,10]
+                binths = [7,10,10,10]
             elif COND=="WT":
-                binths = [12,10,5,6]
+                binths = [12,[10,12],5,[4,6]]
+        
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+        try: 
+            files = get_file_names(path_save_dir)
+        except: 
+            import os
+            os.mkdir(path_save_dir)
 
+        ### GET FULL FILE NAME AND FILE CODE ###
+        files_data = get_file_names(path_data_dir)
+        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+        if "96hr" in path_data_dir:
+            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+            
         for apo_stage in apo_stages:
-            ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-            path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
-            path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
             path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}_apoptosis/{}/{}/'.format(apo_stage, TIME, COND)
 
-            try: 
-                files = get_file_names(path_save_dir)
-            except: 
-                import os
-                os.mkdir(path_save_dir)
-
-            ### GET FULL FILE NAME AND FILE CODE ###
-            files = get_file_names(path_data_dir)
-
-            channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-            if "96hr" in path_data_dir:
-                channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
-
-            dists_contour_Casp3 = []
-            dists_contour_A12 = []
-            dists_contour_F3 = []
-            dists_centroid_Casp3 = []
-            dists_centroid_A12 = []
-            dists_centroid_F3 = []
-
-            for f, file in enumerate(files):
-                print(file)
-                if f<2: continue
-                path_data = path_data_dir+file
-                file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
+            for f, file_data in enumerate(files_data):
+                path_data = path_data_dir+file_data
+                file, embcode = get_file_name(path_data_dir, file_data, allow_file_fragment=False, return_files=False, return_name=True)
                 path_save = correct_path(path_save_dir+embcode)
                 try: 
                     files = get_file_names(path_save)
@@ -292,7 +278,6 @@ for TIME in TIMES:
                 minz = int(np.min(centers[:,0]))
                 maxz = int(np.max(centers[:,0]))
 
-                centers = centers*resolutions
                 centroid = np.mean(centers*resolutions, axis=0)
 
                 from qlivecell import EmbryoSegmentation, tif_reader_5D
@@ -302,12 +287,15 @@ for TIME in TIMES:
 
                 z_plot = np.rint(hyperstack_seg.shape[1]/2).astype("int64")
                 
-                
+                if TIME=="96hr": 
+                    binth = binths[f]
+                else:
+                    binth=8
                 ES = EmbryoSegmentation(
                         hyperstack_seg,
                         ksize=5,
                         ksigma=20,
-                        binths=8,
+                        binths=binth,
                         apply_biths_to_zrange_only=False,
                         checkerboard_size=10,
                         num_inter=100,
@@ -318,11 +306,11 @@ for TIME in TIMES:
                     )
 
                 ES(hyperstack_seg)
-                ES.plot_segmentation(0, minz + 4)
-                ES.plot_segmentation(0, z_plot)
-                ES.plot_segmentation(0, maxz - 4)
+                # ES.plot_segmentation(0, minz + 4)
+                # ES.plot_segmentation(0, z_plot)
+                # ES.plot_segmentation(0, maxz - 4)
 
-                
+    
                 import numpy as np
                 from skimage import measure
 
@@ -330,14 +318,13 @@ for TIME in TIMES:
                 for zid, z in enumerate(range(minz, maxz+1)):
                     contours = measure.find_contours(ES.LS[0][zid], 0.5)
                     contour = []
+                    # Select the largest contour as the gastruloid contour
                     for cont in contours:
                         if len(cont)>len(contour):
                             contour = cont
                     for p in contour:
                         contour_points3D.append(np.array([z, p[1], p[0]]))
                 contour_points3D = np.array(contour_points3D)
-
-                print("got contours")
                 
                 centers_Casp3 = []
                 centers_Casp3_F3 = []
@@ -395,8 +382,6 @@ for TIME in TIMES:
 
                 centers_A12 = centers_A12*resolutions
                 centers_F3 = centers_F3*resolutions
-
-                print("got centers")
 
                 if len(centers_Casp3)!=0:
                     dists_Casp3 = compute_dists(np.array(centers_Casp3), np.array(contour_points3D))
