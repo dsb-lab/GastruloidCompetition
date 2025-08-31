@@ -7,15 +7,30 @@ import matplotlib.pyplot as plt
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=14) 
+mpl.rc('axes', labelsize=14) 
+mpl.rc('xtick', labelsize=14) 
+mpl.rc('ytick', labelsize=14) 
+mpl.rc('legend', fontsize=14) 
+
+from scipy.signal import argrelextrema
+from sklearn.neighbors import KernelDensity
+
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 CONDS = ["WT", "KO"]
 repeats = ["n2", "n3", "n4"]
 
-areas = []
+thresholds = []
 
 for COND in CONDS:
     for REP in repeats:
         
+
         path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/input/{}/{}/".format(COND,REP)
         path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/{}/{}/".format(COND,REP)
 
@@ -26,7 +41,9 @@ for COND in CONDS:
         channel_names = ["A12", "p53", "F3", "DAPI"]
 
         for f, file in enumerate(files):
-            
+        
+            areas = []
+
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
             path_save = path_save_dir+embcode
@@ -127,51 +144,38 @@ for COND in CONDS:
                 
 
 
-import matplotlib as mpl
-plt.rcParams.update({
-    "text.usetex": True,
-})
-mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
-mpl.rc('font', size=14) 
-mpl.rc('axes', labelsize=14) 
-mpl.rc('xtick', labelsize=14) 
-mpl.rc('ytick', labelsize=14) 
-mpl.rc('legend', fontsize=14) 
+            fig, ax = plt.subplots(2,1, figsize=(5,8))
+            threshold = 0
+            data = np.array(areas)
+            ax[0].hist(data, bins=200, color=[0.0, 0.8, 0.0], density=True, alpha=0.6,)
 
-from scipy.signal import argrelextrema
-from sklearn.neighbors import KernelDensity
+            x = np.arange(0, step=0.1, stop=np.max(data))
+            bw = 7
+            modelo_kde = KernelDensity(kernel="linear", bandwidth=bw)
+            modelo_kde.fit(X=data.reshape(-1, 1))
+            densidad_pred = np.exp(modelo_kde.score_samples(x.reshape((-1, 1))))
+            ax[0].plot(x, densidad_pred, color="magenta")
 
+            local_minima = argrelextrema(densidad_pred, np.less)[0]
+            threshold = x[local_minima[0]]
+            x_th = np.ones(len(x)) * x[local_minima[0]]
+            y_th = np.linspace(0, np.max(densidad_pred), num=len(x))
+            ax[0].plot(x_th, y_th, c="k", ls="--",lw=2, label="debris th.")
 
-fig, ax = plt.subplots(2,1, figsize=(5,8))
-threshold = 0
-data = np.array(areas)
-ax[0].hist(data, bins=200, color=[0.0, 0.8, 0.0], density=True, alpha=0.6,)
+            thresholds.append(threshold)
+            
+            ax[0].set_ylabel("count")
+            ax[1].set_ylabel("count")
 
-x = np.arange(0, step=0.1, stop=np.max(data))
-bw = 5
-modelo_kde = KernelDensity(kernel="linear", bandwidth=bw)
-modelo_kde.fit(X=data.reshape(-1, 1))
-densidad_pred = np.exp(modelo_kde.score_samples(x.reshape((-1, 1))))
-ax[0].plot(x, densidad_pred, color="magenta")
+            ax[1].hist(data, bins=200, color=[0.0, 0.8, 0.0], density=True, alpha=0.6)
+            ax[1].set_xlabel(r"area ($\mu$m$^2$)")
+            ax[1].plot(x, densidad_pred, color="magenta")
+            ax[1].plot(x_th, y_th, c="k", ls="--",lw=2, label="debris th.")
 
-local_minima = argrelextrema(densidad_pred, np.less)[0]
-threshold = x[local_minima[0]]
-x_th = np.ones(len(x)) * x[local_minima[0]]
-y_th = np.linspace(0, np.max(densidad_pred), num=len(x))
-ax[0].plot(x_th, y_th, c="k", ls="--",lw=2, label="debris th.")
+            ax[1].set_xlim(-1, 75)
+            plt.tight_layout()
 
-ax[0].set_ylabel("count")
-ax[1].set_ylabel("count")
-
-ax[1].hist(data, bins=200, color=[0.0, 0.8, 0.0], density=True, alpha=0.6)
-ax[1].set_xlabel(r"area ($\mu$m$^2$)")
-ax[1].plot(x, densidad_pred, color="magenta")
-ax[1].plot(x_th, y_th, c="k", ls="--",lw=2, label="debris th.")
-
-ax[1].set_xlim(-1, 75)
-plt.tight_layout()
-
-path_figs = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
-plt.savefig(path_figs+"debris_thresholds.svg")
-plt.savefig(path_figs+"debris_thresholds.pdf")
-plt.show()
+            path_figs = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+            plt.savefig(path_figs+"debris_thresholds.svg")
+            plt.savefig(path_figs+"debris_thresholds.pdf")
+            plt.show()

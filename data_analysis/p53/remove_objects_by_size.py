@@ -13,7 +13,7 @@ repeats = ["n2", "n3", "n4"]
 
 
 size_th_low = 31.9
-size_th_high = 100.0
+size_th_high = 200.0
 for COND in CONDS:
     for REP in repeats:
         
@@ -91,16 +91,21 @@ for COND in CONDS:
                 zcid = cell.zs[0].index(zc)
 
                 mask = cell.masks[0][zcid]
-                area = len(mask) / CT_F3.metadata["XYresolution"]**2
+                area = len(mask) * CT_F3.metadata["XYresolution"]**2
                 if area < size_th_low:
                     labs_to_rem.append(cell.label)
                 elif area > size_th_high:
                     labs_to_rem.append(cell.label)
+                    
             for lab in labs_to_rem:
                 CT_F3._del_cell(lab)  
                  
             CT_F3.update_labels()
-                
+            
+            print()
+            print("F3", len(CT_F3.jitcells))
+            print(len(labs_to_rem))
+            
             ch = channel_names.index("A12")
             batch_args = {
                 'name_format':"ch"+str(ch)+"_{}",
@@ -131,7 +136,7 @@ for COND in CONDS:
                 zcid = cell.zs[0].index(zc)
 
                 mask = cell.masks[0][zcid]
-                area = len(mask) / CT_A12.metadata["XYresolution"]**2
+                area = len(mask) * CT_A12.metadata["XYresolution"]**2
                 if area < size_th_low:
                     labs_to_rem.append(cell.label)
                 elif area > size_th_high:
@@ -140,5 +145,6 @@ for COND in CONDS:
                 CT_A12._del_cell(lab)  
                  
             CT_A12.update_labels()
-                
-
+            
+            print("A12", len(CT_A12.jitcells))
+            print(len(labs_to_rem))
