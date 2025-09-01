@@ -13,7 +13,7 @@ repeats = ["n2", "n3", "n4"]
 
 
 size_th_low = 31.9
-size_th_high = 200.0
+size_th_high = 250.0
 for COND in CONDS:
     for REP in repeats:
         

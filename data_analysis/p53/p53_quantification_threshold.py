@@ -12,11 +12,19 @@ F3_all = [[] for z in range(10)]
 F3_F3 = [[] for z in range(10)]
 F3_A12 = [[] for z in range(10)]
 F3_DAPI = [[] for z in range(10)]
+F3_p53 = [[] for z in range(10)]
+
+F3_p53_WT = [[] for z in range(10)]
+F3_p53_KO = [[] for z in range(10)]
+
+A12_p53_WT = [[] for z in range(10)]
+A12_p53_KO = [[] for z in range(10)]
 
 A12_all = [[] for z in range(10)]
 A12_F3 = [[] for z in range(10)]
 A12_A12 = [[] for z in range(10)]
 A12_DAPI = [[] for z in range(10)]
+A12_p53 = [[] for z in range(10)]
 
 DAPI_all = [[] for z in range(10)]
 
@@ -137,6 +145,7 @@ for COND in CONDS:
             
             ch_F3 = channel_names.index("F3")
             ch_A12 = channel_names.index("A12")
+            ch_p53 = channel_names.index("p53")
             ch_DAPI = channel_names.index("DAPI")
 
             for cell in CT_F3.jitcells:
@@ -152,6 +161,12 @@ for COND in CONDS:
                 F3_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
                 F3_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
                 F3_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
+                F3_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                
+                if COND=="WT":
+                    F3_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                else:
+                    F3_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
 
                 colors[z].append([0.0,0.8,0.0, 0.3])
                 
@@ -167,43 +182,31 @@ for COND in CONDS:
                 
                 A12_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
                 A12_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-                A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))                
+                A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
+                A12_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                
+                if COND=="WT":
+                    A12_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                else:
+                    A12_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+
                 colors[z].append([0.8,0.0,0.8, 0.3])
 
-for z in range(zs[0]):
-    fig, ax = plt.subplots()
-    ax.set_xlabel("mean H2B-mCherry [a.u.]")
-    ax.set_ylabel("mean H2B-emiRFP [a.u.]")            
-    ax.scatter(F3_all[z], A12_all[z],c=colors[z], edgecolors='none')
-    # ax.set_xlim(-5, 20000)
-    # ax.set_ylim(-5, 20000)
-    # ax.set_yscale("log")
-    # ax.set_xscale("log")
-    ax.spines[['right', 'top']].set_visible(False)
-    plt.show()
 
-F3_means = np.array([np.mean(f3) for f3 in F3_F3])
-F3_stds = np.array([np.std(f3) for f3 in F3_F3])
+all_vals = [[*F3_p53_WT[z], *F3_p53_KO[z]] for z in range(10)]
 
-A12_means = np.array([np.mean(a12) for a12 in A12_A12])
-A12_stds = np.array([np.std(a12) for a12 in A12_A12])
+iqr_outlier_threshold = 3.5
 
-DAPI_means = np.array([np.mean(dapi) for dapi in DAPI_all])
-DAPI_stds = np.array([np.std(dapi) for dapi in DAPI_all])
+extreme_threshold = []
+# Overlay individual points (WT)
+z_vals = np.arange(len(F3_p53_WT))
+for z in z_vals:
 
-fig, ax = plt.subplots()
+    q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
+    iqr = q3 - q1
+    upper = q3 + iqr_outlier_threshold * iqr
+    extreme_threshold.append(upper)
 
-ax.plot(range(10), F3_means, color=[0.0,0.8,0.0, 1.0], label="H2B-mCherry on F3")
-ax.fill_between(range(10), F3_means - F3_stds, F3_means + F3_stds, color=[0.0,0.8,0.0], alpha=0.2)
+print("Thresholds")
+print(extreme_threshold)
 
-ax.plot(range(10), A12_means, color=[0.8,0.0,0.8, 1.0], label="H2B-emiRFP on A12")
-ax.fill_between(range(10), A12_means - A12_stds, A12_means + A12_stds, color=[0.8,0.0,0.8], alpha=0.2)
-
-ax.plot(range(10), DAPI_means, color="cyan", label="DAPI on all cells")
-ax.fill_between(range(10), DAPI_means - DAPI_stds, DAPI_means + DAPI_stds, color="cyan", alpha=0.2)
-
-ax.set_xlabel("z")
-ax.set_ylabel("fluoro [a.u.]")
-ax.title("Mean with std ribbon")
-ax.legend()
-plt.show()
