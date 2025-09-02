@@ -156,13 +156,14 @@ bins = 50
 density=True
 
 fig,ax = plt.subplots()
-ax.hist(A, bins=bins, density=density, alpha=0.5)
-ax.hist(B, bins=bins, density=density, alpha=0.5)
-
+ax.hist(DISTS_F3_WT[0][0], bins=bins, density=density, alpha=0.5, color=(0.0, 0.8, 0.0))
+ax.hist(DISTS_A12_WT[0][0], bins=bins, density=density, alpha=0.5, color=(0.9, 0.0, 0.9))
+ax.hist(DISTS_A12_KO[0][0], bins=bins, density=density, alpha=0.5, color=(0.6, 0.0, 0.6))
+ax.hist(DISTS_F3_KO[0][0], bins=bins, density=density, alpha=0.5, color="cyan")
 plt.show()
 
-A = DISTS_F3_WT[0][0]
-B = DISTS_A12_WT[0][1]
+A = DISTS_F3_WT[1][0]
+B = DISTS_A12_WT[1][0]
 ks_stat, p_val = ks_2samp(A, B)
 p_values.append(p_val)
 ks_results.append((i, ks_stat, p_val))
@@ -173,21 +174,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # -------------------------
-# Example data (replace with your real data)
-# -------------------------
-# np.random.seed(42)
-# experiments = [
-#     (np.random.normal(0, 1, 60), np.random.normal(0.1, 1, 55)),  # Experiment 1
-#     (np.random.normal(0, 1, 70), np.random.normal(0.05, 1, 80)), # Experiment 2
-#     (np.random.normal(0, 1, 90), np.random.normal(-0.02, 1, 85)),# Experiment 3
-#     (np.random.normal(0, 1, 50), np.random.normal(0.03, 1, 60)), # Experiment 4
-# ]
-
-# -------------------------
 # Step 1: Pool all A and B points
 # -------------------------
 all_A = np.concatenate([exp for exp in DISTS_F3_KO[0]])
-all_B = np.concatenate([exp for exp in DISTS_A12_KO[0]])
+all_B = np.concatenate([exp for exp in DISTS_F3_WT[0]])
+all_C = np.concatenate([exp for exp in DISTS_A12_WT[0]])
+all_D = np.concatenate([exp for exp in DISTS_A12_KO[0]])
 print(f"Total points pooled: A={len(all_A)}, B={len(all_B)}")
 
 # -------------------------
@@ -242,10 +234,15 @@ def ecdf(data):
 
 xA, yA = ecdf(all_A)
 xB, yB = ecdf(all_B)
+xC, yC = ecdf(all_C)
+xD, yD = ecdf(all_D)
 
 plt.figure(figsize=(6,4))
-plt.step(xA, yA, where='post', label="Population A (pooled)", color='C0')
-plt.step(xB, yB, where='post', label="Population B (pooled)", color='C1')
+plt.step(xA, yA, where='post', label="F3 with KO", color="cyan")
+plt.step(xB, yB, where='post', label="F3 with WT", color=(0.0, 0.8, 0.0))
+plt.step(xC, yC, where='post', label="A12-WT", color=(0.8, 0.0, 0.8))
+plt.step(xD, yD, where='post', label="A12-KO", color=(0.6, 0.0, 0.6))
+
 plt.xlabel("Radial metric R")
 plt.ylabel("ECDF")
 plt.title("Pooled Populations ECDF")

@@ -314,3 +314,17 @@ plt.show()
 
 
 
+import pandas as pd
+
+# Keep labels and data in the same order you plot
+labels = ["A12 - KO", "A12 - WT", "F3 with WT", "F3 with KO"]
+data = [all_extremeA12_KO, all_extremeA12_WT, all_extremeF3_WT, all_extremeF3_KO]
+
+# Build a dict of Series to handle different lengths (NaN padding)
+cols = {lab: pd.Series(vals) for lab, vals in zip(labels, data)}
+
+df = pd.DataFrame(cols)
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
+

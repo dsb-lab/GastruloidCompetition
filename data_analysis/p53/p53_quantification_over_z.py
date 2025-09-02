@@ -354,13 +354,23 @@ for z in z_vals:
     extreme_threshold.append(upper)
 
 
-fig, ax = plt.subplots(figsize=(10,5))
+fig, ax = plt.subplots(figsize=(12,6))
 
-offset = 0.25  # spacing for left/right
-
-# ---- A12 WT (magenta, left) ----
+offset = 0.42  # spacing for left/right
+z_vals_plot = z_vals*1.3
+# ---- A12 KO (dark-magenta, left) ----
 vp1 = ax.violinplot(
-    A12_p53_WT, positions=z_vals - offset, widths=0.25,
+    A12_p53_KO, positions=z_vals_plot - offset, widths=0.25,
+    showmeans=False, showextrema=False, showmedians=False
+)
+for body in vp1['bodies']:
+    body.set_facecolor((0.6,0.0,0.6,0.5))  # dark-magenta
+    body.set_edgecolor('black')
+    body.set_linewidth(0.5)
+    
+# ---- A12 WT (magenta, left-center) ----
+vp1 = ax.violinplot(
+    A12_p53_WT, positions=z_vals_plot - 0.33*offset, widths=0.25,
     showmeans=False, showextrema=False, showmedians=False
 )
 for body in vp1['bodies']:
@@ -370,7 +380,7 @@ for body in vp1['bodies']:
 
 # ---- F3 WT (green, center) ----
 vp2 = ax.violinplot(
-    F3_p53_WT, positions=z_vals, widths=0.25,
+    F3_p53_WT, positions=z_vals_plot + 0.33*offset, widths=0.25,
     showmeans=False, showextrema=False, showmedians=False
 )
 for body in vp2['bodies']:
@@ -380,7 +390,7 @@ for body in vp2['bodies']:
 
 # ---- F3 KO (cyan, right) ----
 vp3 = ax.violinplot(
-    F3_p53_KO, positions=z_vals + offset, widths=0.25,
+    F3_p53_KO, positions=z_vals_plot + offset, widths=0.25,
     showmeans=False, showextrema=False, showmedians=False
 )
 for body in vp3['bodies']:
@@ -389,54 +399,74 @@ for body in vp3['bodies']:
     body.set_linewidth(0.5)
 
 # ---- Overlay individual points ----
-for z, arr in zip(z_vals, A12_p53_WT):
-    ax.scatter(np.full_like(arr, z - offset), arr,
-               color=(0.8,0.0,0.8), alpha=0.7, s=10, zorder=3)
+for z, arr in zip(z_vals, A12_p53_KO):
+    z_plot = z_vals_plot[z]
+    ax.scatter(np.full_like(arr, z_plot - offset), arr,
+               color=(0.6,0.0,0.6), alpha=0.7, s=5, zorder=3)
     q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
     iqr = q3 - q1
     upper = q3 + iqr_outlier_threshold * iqr
 
     ext_mask = arr > upper
-    ax.scatter(np.full_like(arr, z - offset)[ext_mask], np.array(arr)[ext_mask],
+    
+    ax.scatter(np.full_like(arr, z_plot - offset)[ext_mask], np.array(arr)[ext_mask],
+           color="red", marker="x", s=30, zorder=4)
+    
+for z, arr in zip(z_vals, A12_p53_WT):
+    z_plot = z_vals_plot[z]
+    ax.scatter(np.full_like(arr, z_plot - 0.33*offset), arr,
+               color=(0.8,0.0,0.8), alpha=0.7, s=5, zorder=3)
+    q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
+    iqr = q3 - q1
+    upper = q3 + iqr_outlier_threshold * iqr
+
+    ext_mask = arr > upper
+    ax.scatter(np.full_like(arr, z_plot - 0.33*offset)[ext_mask], np.array(arr)[ext_mask],
            color="red", marker="x", s=30, zorder=4)
     
 for z, arr in zip(z_vals, F3_p53_WT):
-    ax.scatter(np.full_like(arr, z), arr,
-               color=(0.0,0.8,0.0), alpha=0.7, s=10, zorder=3)
+    z_plot = z_vals_plot[z]
+    ax.scatter(np.full_like(arr, z_plot + 0.33*offset), arr,
+               color=(0.0,0.8,0.0), alpha=0.7, s=5, zorder=3)
     q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
     iqr = q3 - q1
     upper = q3 + iqr_outlier_threshold * iqr
 
     ext_mask = arr > upper
-    ax.scatter(np.full_like(arr, z)[ext_mask], np.array(arr)[ext_mask],
+    ax.scatter(np.full_like(arr, z_plot + 0.33*offset)[ext_mask], np.array(arr)[ext_mask],
            color="red", marker="x", s=30, zorder=4)
     
 for z, arr in zip(z_vals, F3_p53_KO):
-    ax.scatter(np.full_like(arr, z + offset), arr,
-               color='cyan', alpha=0.7, s=10, zorder=3)
+    z_plot = z_vals_plot[z]
+    ax.scatter(np.full_like(arr, z_plot + offset), arr,
+               color='cyan', alpha=0.7, s=5, zorder=3)
     q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
     iqr = q3 - q1
     upper = q3 + iqr_outlier_threshold * iqr
 
     ext_mask = arr > upper
-    ax.scatter(np.full_like(arr, z + offset)[ext_mask], np.array(arr)[ext_mask],
+    ax.scatter(np.full_like(arr, z_plot + offset)[ext_mask], np.array(arr)[ext_mask],
            color="red", marker="x", s=30, zorder=4)
     
 # ---- Axis + legend ----
 ax.set_xlabel("z")
 ax.set_ylabel("p53")
-ax.set_xticks(z_vals)
-ax.set_title("A12 WT vs F3 WT vs F3 KO distributions per z")
-
+ax.set_xticks(z_vals_plot)
+ax.set_title("p53 distributions across z")
+ax.set_xticklabels(z_vals)
 legend_elems = [
-    plt.Line2D([0],[0], color=(0.8,0.0,0.8), lw=4, label="A12 WT"),
-    plt.Line2D([0],[0], color=(0.0,0.8,0.0), lw=4, label="F3 WT"),
-    plt.Line2D([0],[0], color='cyan', lw=4, label="F3 KO"),
+    plt.Line2D([0],[0], color=(0.6,0.0,0.6), lw=4, label="A12-KO"),
+    plt.Line2D([0],[0], color=(0.8,0.0,0.8), lw=4, label="A12-WT"),
+    plt.Line2D([0],[0], color=(0.0,0.8,0.0), lw=4, label="F3 with WT"),
+    plt.Line2D([0],[0], color='cyan', lw=4, label="F3 with KO"),
 ]
 ax.legend(handles=legend_elems, frameon=False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
 
 plt.tight_layout()
 plt.show()
+
 
 
 fig, ax = plt.subplots(figsize=(10,5))
@@ -610,3 +640,25 @@ ax[2].spines['right'].set_visible(False)
 
 plt.tight_layout()
 plt.show()
+
+import pandas as pd
+
+# Build dictionary: one column per violin
+data_dict = {}
+
+for z, arr in enumerate(A12_p53_KO):
+    arr = A12_p53_KO[z]
+    data_dict[f"A12-KO_z{z}"] = pd.Series(arr)
+    arr = A12_p53_WT[z]
+    data_dict[f"A12-WT_z{z}"] = pd.Series(arr)
+    arr = F3_p53_WT[z]
+    data_dict[f"F3-WT_z{z}"] = pd.Series(arr)
+    arr = F3_p53_KO[z]
+    data_dict[f"F3-KO_z{z}"] = pd.Series(arr)
+
+# Convert to DataFrame (NaN fills uneven lengths)
+df = pd.DataFrame(data_dict)
+
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+df.to_csv(path_save+"violin_data.csv", index=False)
