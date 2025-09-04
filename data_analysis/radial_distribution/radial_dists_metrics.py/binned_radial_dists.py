@@ -32,7 +32,9 @@ DISTS_F3_KO = []
 DISTS_A12_KO = []
 DISTS_apo_KO = []
 
+EXPERIMENTS = ["2023_11_17_Casp3", "2024_03_Casp3"]
 TIMES = ["48hr", "72hr", "96hr"]
+EXP = EXPERIMENTS[0]
 
 all_files = []
 all_data = []
@@ -43,9 +45,9 @@ for TIME in TIMES:
     dists_Casp3 = []
     
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
-    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/KO/'.format(TIME)
+    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/KO/'.format(EXP, TIME)
+    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/KO/'.format(EXP, TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}/early_apoptosis/{}/KO/'.format(EXP, TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
@@ -70,25 +72,24 @@ for TIME in TIMES:
         dists = dists_centroid_F3_current / (dists_centroid_F3_current + dists_contour_F3_current)
         all_files.append(file + " F3")
         all_data.append(dists)
-        dists_F3 = [*dists_F3, *dists]
+        dists_F3.append(dists)
         
         dists = dists_centroid_A12_current / (dists_centroid_A12_current + dists_contour_A12_current)
         all_files.append(file + " A12")
         all_data.append(dists)
-        dists_A12 = [*dists_A12, *dists]
-        
+        dists_A12.append(dists)
+
         dists = dists_centroid_Casp3_current / (dists_centroid_Casp3_current + dists_contour_Casp3_current)
-        dists_Casp3 = [*dists_Casp3, *dists]
-        
+        dists_Casp3.append(dists)
                 
     DISTS_F3_KO.append(dists_F3)
     DISTS_A12_KO.append(dists_A12)
     DISTS_apo_KO.append(dists_Casp3)
 
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
-    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/WT/'.format(TIME)
+    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/WT/'.format(EXP, TIME)
+    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/WT/'.format(EXP, TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}/early_apoptosis/{}/WT/'.format(EXP, TIME)
 
 
     ### GET FULL FILE NAME AND FILE CODE ###
@@ -119,20 +120,21 @@ for TIME in TIMES:
         dists = dists_centroid_F3_current / (dists_centroid_F3_current + dists_contour_F3_current)
         all_files.append(file + " F3")
         all_data.append(dists)
-        dists_F3 = [*dists_F3, *dists]
+        dists_F3.append(dists)
         
         dists = dists_centroid_A12_current / (dists_centroid_A12_current + dists_contour_A12_current)
         all_files.append(file + " A12")
         all_data.append(dists)
-        dists_A12 = [*dists_A12, *dists]
-        
+        dists_A12.append(dists)
+
         dists = dists_centroid_Casp3_current / (dists_centroid_Casp3_current + dists_contour_Casp3_current)
-        dists_Casp3 = [*dists_Casp3, *dists]
+        dists_Casp3.append(dists)
     
 
     DISTS_F3_WT.append(dists_F3)
     DISTS_A12_WT.append(dists_A12)
     DISTS_apo_WT.append(dists_Casp3)
+
 
 bin_ns = range(5, 50, 5)
 sigmas = [3,4,5,7.5,10]

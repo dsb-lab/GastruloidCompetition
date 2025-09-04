@@ -31,8 +31,9 @@ DISTS_F3_KO = []
 DISTS_A12_KO = []
 DISTS_apo_KO = []
 
+EXPERIMENTS = ["2023_11_17_Casp3", "2024_03_Casp3"]
 TIMES = ["48hr", "72hr", "96hr"]
-
+EXP = EXPERIMENTS[1]
 all_files = []
 all_data = []
 
@@ -42,9 +43,9 @@ for TIME in TIMES:
     dists_Casp3 = []
     
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/KO/'.format(TIME)
-    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/KO/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/KO/'.format(TIME)
+    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/KO/'.format(EXP, TIME)
+    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/KO/'.format(EXP, TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}/early_apoptosis/{}/KO/'.format(EXP, TIME)
 
     ### GET FULL FILE NAME AND FILE CODE ###
     files = get_file_names(path_data_dir)
@@ -85,9 +86,9 @@ for TIME in TIMES:
     DISTS_apo_KO.append(dists_Casp3)
 
     ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/WT/'.format(TIME)
-    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/WT/'.format(TIME)
-    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/early_apoptosis/{}/WT/'.format(TIME)
+    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/WT/'.format(EXP, TIME)
+    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/WT/'.format(EXP, TIME)
+    path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}/early_apoptosis/{}/WT/'.format(EXP, TIME)
 
 
     ### GET FULL FILE NAME AND FILE CODE ###

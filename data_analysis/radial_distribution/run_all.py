@@ -24,9 +24,14 @@ def compute_dists(points1, points2):
             dists[i,j] = compute_distance_xyz(center, cont)
     return dists
 
+EXPERIMENTS = ["2023_11_17_Casp3", "2024_03_Casp3"]
 TIMES = ["48hr", "72hr", "96hr"]
+
+EXP = EXPERIMENTS[1]
 CONDS = ["WT", "KO"]
+
 apo_stages = ["early", "mid", "late"]
+
 
 for TIME in TIMES:
     print(TIME)
@@ -34,12 +39,12 @@ for TIME in TIMES:
         print(COND)
         if TIME=="96hr":
             if COND=="KO":
-                binths = [7,10,10,10]
+                binths = [[5,4],[5.0, 4.0],[6.0, 5.0]]
             elif COND=="WT":
-                binths = [12,[10,12],5,[4,6]]
+                binths = [[7.5, 5.0],[7.5, 5.0],[7.5, 5.0]]
         
-        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
-        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+        path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(EXP, TIME, COND)
+        path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(EXP, TIME, COND)
         try: 
             files = get_file_names(path_save_dir)
         except: 
@@ -49,13 +54,16 @@ for TIME in TIMES:
         ### GET FULL FILE NAME AND FILE CODE ###
         files_data = get_file_names(path_data_dir)
         channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+
         if "96hr" in path_data_dir:
-            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+            if EXP == "2023_11_17_Casp3":
+                channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
             
         for apo_stage in apo_stages:
-            path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}_apoptosis/{}/{}/'.format(apo_stage, TIME, COND)
+            path_save_results='/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/radial_distribution/{}/{}_apoptosis/{}/{}/'.format(EXP, apo_stage, TIME, COND)
 
             for f, file_data in enumerate(files_data):
+
                 path_data = path_data_dir+file_data
                 file, embcode = get_file_name(path_data_dir, file_data, allow_file_fragment=False, return_files=False, return_name=True)
                 path_save = correct_path(path_save_dir+embcode)
@@ -97,7 +105,7 @@ for TIME in TIMES:
                     'plot_layout': (1,1),
                     'plot_overlap': 1,
                     'masks_cmap': 'tab10',
-                    # 'plot_stack_dims': (256, 256), 
+                    'plot_stack_dims': (256, 256), 
                     'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
                     'channels':[ch_F3],
                     'min_outline_length':75,
@@ -118,7 +126,6 @@ for TIME in TIMES:
                     channels=chans
                 )
 
-
                 CT_F3.load()
                 # CT_F3.plot_tracking()
                 
@@ -131,7 +138,7 @@ for TIME in TIMES:
                     'plot_layout': (1,1),
                     'plot_overlap': 1,
                     'masks_cmap': 'tab10',
-                    # 'plot_stack_dims': (256, 256), 
+                    'plot_stack_dims': (256, 256), 
                     'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
                     'channels':[ch_A12],
                     'min_outline_length':75,
@@ -166,7 +173,7 @@ for TIME in TIMES:
                     'plot_layout': (1,1),
                     'plot_overlap': 1,
                     'masks_cmap': 'tab10',
-                    # 'plot_stack_dims': (256, 256), 
+                    'plot_stack_dims': (256, 256), 
                     'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
                     # 'channels':[ch_A12, ch_F3, ch_Casp3],
                     'channels':[ch_Casp3],
@@ -290,7 +297,9 @@ for TIME in TIMES:
                 if TIME=="96hr": 
                     binth = binths[f]
                 else:
-                    binth=8
+                    binth=7.5
+                
+                print(binth)
                 ES = EmbryoSegmentation(
                         hyperstack_seg,
                         ksize=5,
