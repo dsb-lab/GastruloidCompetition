@@ -465,6 +465,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 
 plt.tight_layout()
+plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/p53distviolin.svg")
 plt.show()
 
 
@@ -633,12 +634,13 @@ ax[2].plot(range(10), KO_extremes_ratio, color="cyan", label="F3 with KO")
 
 ax[2].set_xlabel("z")
 ax[2].set_ylabel(r"\% of p53-high cells")
-ax[2].set_title("Mean with std ribbon")
+ax[2].set_title("p53 high values over z")
 ax[2].legend(frameon=False)
 ax[2].spines['top'].set_visible(False)
 ax[2].spines['right'].set_visible(False)
 
 plt.tight_layout()
+plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/p53overz.svg")
 plt.show()
 
 import pandas as pd

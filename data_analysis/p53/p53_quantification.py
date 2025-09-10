@@ -7,6 +7,16 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=18) 
+mpl.rc('axes', labelsize=18) 
+mpl.rc('xtick', labelsize=18) 
+mpl.rc('ytick', labelsize=18) 
+mpl.rc('legend', fontsize=18) 
 
 files_to_exclude = [
     "n2_F3(150)+WT(150)_72h_emiRFP-p53-mCh-DAPI_(40xSil)_Stack1.tif",
@@ -310,6 +320,7 @@ for i, j in comparisons:
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
+plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
 plt.show()
 
 
