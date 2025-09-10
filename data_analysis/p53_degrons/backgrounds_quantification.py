@@ -18,25 +18,16 @@ mpl.rc('xtick', labelsize=18)
 mpl.rc('ytick', labelsize=18) 
 mpl.rc('legend', fontsize=18) 
 
-F3_all = [[] for z in range(10)]
-F3_F3 = [[] for z in range(10)]
-F3_A12 = [[] for z in range(10)]
-F3_DAPI = [[] for z in range(10)]
-
-A12_all = [[] for z in range(10)]
-A12_F3 = [[] for z in range(10)]
-A12_A12 = [[] for z in range(10)]
-A12_DAPI = [[] for z in range(10)]
-
-DAPI_all = [[] for z in range(10)]
-
+F3 = [[] for z in range(10)]
+A12 = [[] for z in range(10)]
 colors = [[] for z in range(10)]
-fates = [[] for z in range(10)]
-
 zs = []
-all_files = []
 
-CONDS = ["auxin48", "auxin72", "noauxin72" , "secondaryonly"]
+CONDS = ["secondaryonly"]
+files_to_exclude = [
+    "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1.tif",
+    # "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1_new filter.tif"
+]
 
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
@@ -49,8 +40,9 @@ for C, COND in enumerate(CONDS):
     channel_names = ["A12", "p53", "F3", "DAPI"]
 
     for f, file in enumerate(files):
-            
-        all_files.append(file)
+        
+        if file in files_to_exclude: continue
+        
         path_data = path_data_dir+file
         file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
         path_save = path_save_dir+embcode
@@ -142,167 +134,129 @@ for C, COND in enumerate(CONDS):
 
         CT_A12.load()
         zs.append(CT_A12.hyperstack.shape[1])
-        
-        ch_F3 = channel_names.index("F3")
-        ch_A12 = channel_names.index("A12")
-        ch_DAPI = channel_names.index("DAPI")
+  
+        ch_p53 = channel_names.index("p53")
 
         for cell in CT_F3.jitcells:
             center = cell.centers[0]
             z = int(center[0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
-
-            F3_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-            A12_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-            DAPI_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-
-            F3_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-            F3_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-            F3_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-
+            F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
             colors[z].append([0.0,0.8,0.0, 0.3])
-            fates[z].append("F3")
             
         for cell in CT_A12.jitcells:
             center = cell.centers[0]
             z = int(center[0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
-
-            F3_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-            A12_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-            DAPI_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-            
-            A12_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-            A12_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-            A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))                
+            A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
             colors[z].append([0.8,0.0,0.8, 0.3])
-            fates[z].append("A12")
 
-for z in range(zs[-1]):
-    fig, ax = plt.subplots()
-    ax.set_xlabel("mean H2B-mCherry [a.u.]")
-    ax.set_ylabel("mean H2B-emiRFP [a.u.]")            
-    ax.scatter(F3_all[z], A12_all[z],c=colors[z], edgecolors='none')
-    # ax.set_xlim(-5, 20000)
-    # ax.set_ylim(-5, 20000)
-    ax.set_yscale("log")
-    ax.set_xscale("log")
-    ax.spines[['right', 'top']].set_visible(False)
-    plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/corrected_z{}.svg".format(z))
-    plt.tight_layout()
-    plt.show()
 
-F3_means = np.array([np.mean(f3) for f3 in F3_F3])
-F3_stds = np.array([np.std(f3) for f3 in F3_F3])
+F3_means = np.array([np.mean(f3) for f3 in F3])
+F3_stds = np.array([np.std(f3) for f3 in F3])
 
-A12_means = np.array([np.mean(a12) for a12 in A12_A12])
-A12_stds = np.array([np.std(a12) for a12 in A12_A12])
-
-DAPI_means = np.array([np.mean(dapi) for dapi in DAPI_all])
-DAPI_stds = np.array([np.std(dapi) for dapi in DAPI_all])
+A12_means = np.array([np.mean(a12) for a12 in A12])
+A12_stds = np.array([np.std(a12) for a12 in A12])
 
 fig, ax = plt.subplots()
 
-ax.plot(range(10), F3_means, color=[0.0,0.8,0.0, 1.0], label="H2B-mCherry on F3")
+ax.plot(range(10), F3_means, color=[0.0,0.8,0.0, 1.0], label="F3")
 ax.fill_between(range(10), F3_means - F3_stds, F3_means + F3_stds, color=[0.0,0.8,0.0], alpha=0.2)
 
-ax.plot(range(10), A12_means, color=[0.8,0.0,0.8, 1.0], label="H2B-emiRFP on A12")
+ax.plot(range(10), A12_means, color=[0.8,0.0,0.8, 1.0], label="A12")
 ax.fill_between(range(10), A12_means - A12_stds, A12_means + A12_stds, color=[0.8,0.0,0.8], alpha=0.2)
 
-ax.plot(range(10), DAPI_means, color="cyan", label="DAPI on all cells")
-ax.fill_between(range(10), DAPI_means - DAPI_stds, DAPI_means + DAPI_stds, color="cyan", alpha=0.2)
-
 ax.set_xlabel("z")
-ax.set_ylabel("fluoro [a.u.]")
+ax.set_ylabel("p53 [a.u.]")
+ax.title("p53 background analysis")
 ax.legend()
+plt.tight_layout()
 plt.show()
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
 
-# Instantiate KMeans with the number of clusters
-remove_cell = [[] for z in range(10)]
+# --- assumes you already have F3 and A12 as lists/arrays of 1D arrays per z ---
+# e.g. F3[z] -> values for F3 at slice z, same for A12[z]
+F3_means = np.array([np.mean(f3) for f3 in F3])
+F3_stds  = np.array([np.std(f3)  for f3 in F3])
 
-for z in range(10):
-    data1 = F3_all[z]
-    data2 = A12_all[z]
-    checkvar = fates[z]
-    X = np.transpose(np.asarray([np.log(data1), np.log(data2)]))
+A12_means = np.array([np.mean(a12) for a12 in A12])
+A12_stds  = np.array([np.std(a12)  for a12 in A12])
 
-    kmeans = KMeans(n_clusters=2)
+assert len(F3_means) == len(A12_means), "F3 and A12 must have the same number of z-slices"
+n_z = len(F3_means)
 
-    # Fit the KMeans model to the data
-    kmeans.fit(X)
+# Colors (match your lines)
+col_F3  = (0.0, 0.8, 0.0, 0.7)
+col_A12 = (0.8, 0.0, 0.8, 0.7)
 
-    # Get cluster centers and labels
-    cluster_centers = kmeans.cluster_centers_
-    labels = kmeans.labels_
+# X positions
+idx = np.arange(n_z)
+bar_width = 0.38
+x_F3  = idx - bar_width/2
+x_A12 = idx + bar_width/2
 
-    colors_clustering = []
-    clustered_fates = np.argsort(cluster_centers[:,0])
+# For reproducible jitter
+rng = np.random.default_rng(42)
 
-    for i, lab in enumerate(labels):
-        if lab==clustered_fates[0]:
-            if checkvar[i]!="A12":
-                colors_clustering.append([0.2, 0.2, 0.2, 1.0])
-                remove_cell[z].append(True)
-            else:
-                colors_clustering.append([0.8, 0.0, 0.8, 0.7])
-                remove_cell[z].append(False)
-        elif lab==clustered_fates[1]:
-            if checkvar[i]!="F3":
-                colors_clustering.append([0.2, 0.2, 0.2, 1.0])
-                remove_cell[z].append(True)
-            else:
-                remove_cell[z].append(False)
-                colors_clustering.append([0.0, 0.8, 0.0, 0.7])
-            
-    # Plot the original data points and cluster centers
-    from matplotlib.lines import Line2D
-    plt.figure(figsize=(8, 6))
-    plt.scatter(X[:, 0], X[:, 1], c=colors_clustering, edgecolors='k')
-    # plt.scatter(cluster_centers[:, 0], cluster_centers[:, 1], marker='X', s=200, linewidths=3, color='red', label='Cluster Centers')
-    plt.xlabel('log(emiRFG)')
-    plt.ylabel('log(mCherry)')
-    plt.tight_layout()
+fig, ax = plt.subplots(figsize=(9, 4.8))
 
-    # Custom legend handles
-    legend_elements = [
-        Line2D([0], [0], marker="o", color="w", label="A12",
-            markerfacecolor=(0.8, 0.0, 0.8, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="F3",
-            markerfacecolor=(0.0, 0.8, 0.0, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="spillover cells",
-            markerfacecolor=(0.2, 0.2, 0.2, 1.0), markersize=10),
-    ]
-    plt.legend(handles=legend_elements, loc="best", frameon=True)
-    plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/clusteringloglog_z{}.svg".format(z))
-    plt.show()
+# Bars with STD error bars
+bars_F3 = ax.bar(
+    x_F3, F3_means, width=bar_width, yerr=F3_stds, capsize=3,
+    color=col_F3, alpha=0.85, label="F3", zorder=2
+)
+bars_A12 = ax.bar(
+    x_A12, A12_means, width=bar_width, yerr=A12_stds, capsize=3,
+    color=col_A12, alpha=0.85, label="A12", zorder=2
+)
 
-    plt.figure(figsize=(8, 6))
-    plt.scatter(data1, data2, c=colors_clustering, edgecolors='k')
-    plt.xlabel('emiRFP')
-    plt.ylabel('mCherry')
-    plt.tight_layout()
+# Jittered scatter of raw points for each z, centered on each bar
+jitter_span = bar_width * 0.6  # how wide to spread points around the bar center
+dot_size = 18
 
-    # Custom legend handles
-    legend_elements = [
-        Line2D([0], [0], marker="o", color="w", label="A12",
-            markerfacecolor=(0.8, 0.0, 0.8, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="F3",
-            markerfacecolor=(0.0, 0.8, 0.0, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="spillover cells",
-            markerfacecolor=(0.2, 0.2, 0.2, 1.0), markersize=10),
-    ]
-    plt.legend(handles=legend_elements, loc="best", frameon=True)
-    plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/clustering_z{}.svg".format(z))
-    plt.show()
+for z in range(n_z):
+    # F3 points at this z
+    f3_vals = np.asarray(F3[z])
+    if f3_vals.size:
+        xj = x_F3[z] + rng.uniform(-jitter_span/2, jitter_span/2, size=f3_vals.size)
+        ax.scatter(xj, f3_vals, s=dot_size, marker='o', color=(col_F3[0], col_F3[1], col_F3[2], 0.5),
+                   edgecolors="grey", zorder=3)
 
-# Noy is time for the removal
-current_zid = [0 for z in range(10)]
+    # A12 points at this z
+    a12_vals = np.asarray(A12[z])
+    if a12_vals.size:
+        xj = x_A12[z] + rng.uniform(-jitter_span/2, jitter_span/2, size=a12_vals.size)
+        ax.scatter(xj, a12_vals, s=dot_size, marker='o', color=(col_A12[0], col_A12[1], col_A12[2], 0.5),
+                   edgecolors="grey", zorder=3)
+
+# Cosmetics
+ax.set_xticks(idx)
+ax.set_xticklabels([str(z) for z in range(n_z)])
+ax.set_xlabel("z")
+ax.set_ylabel("p53 [a.u.]")
+ax.set_title("p53 background analysis")
+ax.legend(frameon=False)
+ax.grid(axis='y', linestyle=':', linewidth=0.8, alpha=0.6, zorder=0)
+plt.tight_layout()
+plt.show()
+
+print("F3")
+F3_means
+print("A12")
+A12_means
+
+F3_backgrounds = F3_means
+A12_backgrounds = A12_means
+
+F3 = [[] for z in range(10)]
+A12 = [[] for z in range(10)]
+colors = [[] for z in range(10)]
+zs = []
+
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
     path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
@@ -314,8 +268,9 @@ for C, COND in enumerate(CONDS):
     channel_names = ["A12", "p53", "F3", "DAPI"]
 
     for f, file in enumerate(files):
-                
-        all_files.append(file)
+        
+        if file in files_to_exclude: continue
+        
         path_data = path_data_dir+file
         file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
         path_save = path_save_dir+embcode
@@ -406,29 +361,92 @@ for C, COND in enumerate(CONDS):
         )
 
         CT_A12.load()
-        
-        labs_to_rem = []
+        zs.append(CT_A12.hyperstack.shape[1])
+  
+        ch_p53 = channel_names.index("p53")
+
         for cell in CT_F3.jitcells:
             center = cell.centers[0]
             z = int(center[0])
-            if remove_cell[z][current_zid[z]]:
-                labs_to_rem.append(cell.label)
-            current_zid[z]+=1
+            zid = cell.zs[0].index(z)
+            mask = cell.masks[0][zid]
+            F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - F3_backgrounds[z]))
+            colors[z].append([0.0,0.8,0.0, 0.3])
             
-        for lab in labs_to_rem:
-            CT_F3._del_cell(lab)  
-                
-        CT_F3.update_labels() 
-        
-        labs_to_rem = []
         for cell in CT_A12.jitcells:
             center = cell.centers[0]
             z = int(center[0])
-            if remove_cell[z][current_zid[z]]:
-                labs_to_rem.append(cell.label)
-            current_zid[z]+=1
-            
-        for lab in labs_to_rem:
-            CT_A12._del_cell(lab)  
-                
-        CT_A12.update_labels() 
+            zid = cell.zs[0].index(z)
+            mask = cell.masks[0][zid]
+            A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - A12_backgrounds[z]))
+            colors[z].append([0.8,0.0,0.8, 0.3])
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- assumes you already have F3 and A12 as lists/arrays of 1D arrays per z ---
+# e.g. F3[z] -> values for F3 at slice z, same for A12[z]
+F3_means = np.array([np.mean(f3) for f3 in F3])
+F3_stds  = np.array([np.std(f3)  for f3 in F3])
+
+A12_means = np.array([np.mean(a12) for a12 in A12])
+A12_stds  = np.array([np.std(a12)  for a12 in A12])
+
+assert len(F3_means) == len(A12_means), "F3 and A12 must have the same number of z-slices"
+n_z = len(F3_means)
+
+# Colors (match your lines)
+col_F3  = (0.0, 0.8, 0.0, 0.7)
+col_A12 = (0.8, 0.0, 0.8, 0.7)
+
+# X positions
+idx = np.arange(n_z)
+bar_width = 0.38
+x_F3  = idx - bar_width/2
+x_A12 = idx + bar_width/2
+
+# For reproducible jitter
+rng = np.random.default_rng(42)
+
+fig, ax = plt.subplots(figsize=(9, 4.8))
+
+# Bars with STD error bars
+bars_F3 = ax.bar(
+    x_F3, F3_means, width=bar_width, yerr=F3_stds, capsize=3,
+    color=col_F3, alpha=0.85, label="F3", zorder=2
+)
+bars_A12 = ax.bar(
+    x_A12, A12_means, width=bar_width, yerr=A12_stds, capsize=3,
+    color=col_A12, alpha=0.85, label="A12", zorder=2
+)
+
+# Jittered scatter of raw points for each z, centered on each bar
+jitter_span = bar_width * 0.6  # how wide to spread points around the bar center
+dot_size = 18
+
+for z in range(n_z):
+    # F3 points at this z
+    f3_vals = np.asarray(F3[z])
+    if f3_vals.size:
+        xj = x_F3[z] + rng.uniform(-jitter_span/2, jitter_span/2, size=f3_vals.size)
+        ax.scatter(xj, f3_vals, s=dot_size, marker='o', color=(col_F3[0], col_F3[1], col_F3[2], 0.5),
+                   edgecolors="grey", zorder=3)
+
+    # A12 points at this z
+    a12_vals = np.asarray(A12[z])
+    if a12_vals.size:
+        xj = x_A12[z] + rng.uniform(-jitter_span/2, jitter_span/2, size=a12_vals.size)
+        ax.scatter(xj, a12_vals, s=dot_size, marker='o', color=(col_A12[0], col_A12[1], col_A12[2], 0.5),
+                   edgecolors="grey", zorder=3)
+
+# Cosmetics
+ax.set_xticks(idx)
+ax.set_xticklabels([str(z) for z in range(n_z)])
+ax.set_xlabel("z")
+ax.set_ylabel("p53 [a.u.]")
+ax.set_title("p53 background analysis")
+ax.legend(frameon=False)
+ax.grid(axis='y', linestyle=':', linewidth=0.8, alpha=0.6, zorder=0)
+plt.tight_layout()
+plt.show()
