@@ -36,7 +36,15 @@ fates = [[] for z in range(10)]
 zs = []
 all_files = []
 
-CONDS = ["auxin48", "auxin72", "noauxin72" , "secondaryonly"]
+CONDS = ["auxin_48-72_48", "auxin_48-72_72" , "auxin_48-72_96", "auxin_72-96_72", "auxin_72-96_96", "noauxin_72", "noauxin_96"]
+
+calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+p53_F3_s_global = float(calibF3["s"])
+p53_F3_0z = calibF3["b0z"]
+
+calibA12 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
+p53_A12_s_global = float(calibA12["s"])
+p53_A12_0z = calibA12["b0z"]
 
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
@@ -146,7 +154,7 @@ for C, COND in enumerate(CONDS):
         ch_F3 = channel_names.index("F3")
         ch_A12 = channel_names.index("A12")
         ch_DAPI = channel_names.index("DAPI")
-
+        
         for cell in CT_F3.jitcells:
             center = cell.centers[0]
             z = int(center[0])
@@ -223,8 +231,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
+from sklearn.cluster import SpectralClustering
+
+
 # Instantiate KMeans with the number of clusters
 remove_cell = [[] for z in range(10)]
+
+from sklearn.cluster import DBSCAN
+import numpy as np
 
 for z in range(10):
     data1 = F3_all[z]
@@ -233,16 +247,25 @@ for z in range(10):
     X = np.transpose(np.asarray([np.log(data1), np.log(data2)]))
 
     kmeans = KMeans(n_clusters=2)
-
-    # Fit the KMeans model to the data
     kmeans.fit(X)
-
-    # Get cluster centers and labels
     cluster_centers = kmeans.cluster_centers_
+    clustered_fates = np.argsort(cluster_centers[:,0])
     labels = kmeans.labels_
 
+    # clustering = DBSCAN(eps=0.5, min_samples=2).fit(X)
+    # labels = clustering.labels_
+    # clustered_fates = np.unique(labels)
+
+    # clustering = SpectralClustering(n_clusters=2,
+    #                             assign_labels='discretize',
+    #                             random_state=0).fit(X)
+    # labels = clustering.labels_
+    # clustered_fates = np.unique(labels)
+    
     colors_clustering = []
-    clustered_fates = np.argsort(cluster_centers[:,0])
+
+    A12th = np.percentile(data2,20)
+    F3th = np.percentile(data1,20)
 
     for i, lab in enumerate(labels):
         if lab==clustered_fates[0]:
@@ -252,13 +275,25 @@ for z in range(10):
             else:
                 colors_clustering.append([0.8, 0.0, 0.8, 0.7])
                 remove_cell[z].append(False)
-        elif lab==clustered_fates[1]:
+        elif lab==clustered_fates[-1]:
             if checkvar[i]!="F3":
                 colors_clustering.append([0.2, 0.2, 0.2, 1.0])
                 remove_cell[z].append(True)
             else:
                 remove_cell[z].append(False)
                 colors_clustering.append([0.0, 0.8, 0.0, 0.7])
+        else:
+            remove_cell[z].append(False)
+            colors_clustering.append([0.0, 0.0, 0.0, 0.7])
+
+        if checkvar[i]=="A12":
+            if data2[i] < A12th:
+                remove_cell[z][-1]=True
+                colors_clustering[-1] = [0.2, 0.2, 0.2, 1.0]
+        else:
+            if data1[i] < F3th:
+                remove_cell[z][-1]=True
+                colors_clustering[-1] = [0.2, 0.2, 0.2, 1.0]
             
     # Plot the original data points and cluster centers
     from matplotlib.lines import Line2D
@@ -301,134 +336,134 @@ for z in range(10):
     plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/clustering_z{}.svg".format(z))
     plt.show()
 
-# Noy is time for the removal
-current_zid = [0 for z in range(10)]
-for C, COND in enumerate(CONDS):
-    path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
-    path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
+# # Noy is time for the removal
+# current_zid = [0 for z in range(10)]
+# for C, COND in enumerate(CONDS):
+#     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
+#     path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
         
-    check_or_create_dir(path_save_dir)
+#     check_or_create_dir(path_save_dir)
 
-    files = get_file_names(path_data_dir)
+#     files = get_file_names(path_data_dir)
 
-    channel_names = ["A12", "p53", "F3", "DAPI"]
+#     channel_names = ["A12", "p53", "F3", "DAPI"]
 
-    for f, file in enumerate(files):
+#     for f, file in enumerate(files):
                 
-        all_files.append(file)
-        path_data = path_data_dir+file
-        file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
-        path_save = path_save_dir+embcode
+#         all_files.append(file)
+#         path_data = path_data_dir+file
+#         file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
+#         path_save = path_save_dir+embcode
             
-        check_or_create_dir(path_save)
+#         check_or_create_dir(path_save)
 
-        ### DEFINE ARGUMENTS ###
-        segmentation_args={
-            'method': 'stardist2D', 
-            'model': model, 
-            'blur': [2,1], 
-            'min_outline_length':100,
-        }
+#         ### DEFINE ARGUMENTS ###
+#         segmentation_args={
+#             'method': 'stardist2D', 
+#             'model': model, 
+#             'blur': [2,1], 
+#             'min_outline_length':100,
+#         }
 
-        concatenation3D_args = {
-            'do_3Dconcatenation': False
-        }
+#         concatenation3D_args = {
+#             'do_3Dconcatenation': False
+#         }
 
-        error_correction_args = {
-            'backup_steps': 10,
-            'line_builder_mode': 'points',
-        }
+#         error_correction_args = {
+#             'backup_steps': 10,
+#             'line_builder_mode': 'points',
+#         }
 
-        ch = channel_names.index("F3")
+#         ch = channel_names.index("F3")
 
-        batch_args = {
-            'name_format':"ch"+str(ch)+"_{}",
-            'extension':".tif",
-        } 
-        plot_args = {
-            'plot_layout': (1,1),
-            'plot_overlap': 1,
-            'masks_cmap': 'tab10',
-            'plot_stack_dims': (256, 256), 
-            'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-            'channels':[ch],
-            'min_outline_length':75,
-        }
+#         batch_args = {
+#             'name_format':"ch"+str(ch)+"_{}",
+#             'extension':".tif",
+#         } 
+#         plot_args = {
+#             'plot_layout': (1,1),
+#             'plot_overlap': 1,
+#             'masks_cmap': 'tab10',
+#             'plot_stack_dims': (256, 256), 
+#             'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
+#             'channels':[ch],
+#             'min_outline_length':75,
+#         }
 
-        chans = [ch]
-        for _ch in range(len(channel_names)):
-            if _ch not in chans:
-                chans.append(_ch)
+#         chans = [ch]
+#         for _ch in range(len(channel_names)):
+#             if _ch not in chans:
+#                 chans.append(_ch)
                 
-        CT_F3 = cellSegTrack(
-            path_data,
-            path_save,
-            segmentation_args=segmentation_args,
-            concatenation3D_args=concatenation3D_args,
-            error_correction_args=error_correction_args,
-            plot_args=plot_args,
-            batch_args=batch_args,
-            channels=chans
-        )
+#         CT_F3 = cellSegTrack(
+#             path_data,
+#             path_save,
+#             segmentation_args=segmentation_args,
+#             concatenation3D_args=concatenation3D_args,
+#             error_correction_args=error_correction_args,
+#             plot_args=plot_args,
+#             batch_args=batch_args,
+#             channels=chans
+#         )
 
-        CT_F3.load()
+#         CT_F3.load()
 
-        ch = channel_names.index("A12")
-        batch_args = {
-            'name_format':"ch"+str(ch)+"_{}",
-            'extension':".tif",
-        }
+#         ch = channel_names.index("A12")
+#         batch_args = {
+#             'name_format':"ch"+str(ch)+"_{}",
+#             'extension':".tif",
+#         }
 
-        plot_args = {
-            'plot_layout': (1,1),
-            'plot_overlap': 1,
-            'masks_cmap': 'tab10',
-            'plot_stack_dims': (256, 256), 
-            'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
-            'channels':[ch],
-            'min_outline_length':75,
-        }
+#         plot_args = {
+#             'plot_layout': (1,1),
+#             'plot_overlap': 1,
+#             'masks_cmap': 'tab10',
+#             'plot_stack_dims': (256, 256), 
+#             'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
+#             'channels':[ch],
+#             'min_outline_length':75,
+#         }
         
-        chans = [ch]
-        for _ch in range(len(channel_names)):
-            if _ch not in chans:
-                chans.append(_ch)
+#         chans = [ch]
+#         for _ch in range(len(channel_names)):
+#             if _ch not in chans:
+#                 chans.append(_ch)
 
-        CT_A12 = cellSegTrack(
-            path_data,
-            path_save,
-            segmentation_args=segmentation_args,
-            concatenation3D_args=concatenation3D_args,
-            error_correction_args=error_correction_args,
-            plot_args=plot_args,
-            batch_args=batch_args,
-            channels=chans
-        )
+#         CT_A12 = cellSegTrack(
+#             path_data,
+#             path_save,
+#             segmentation_args=segmentation_args,
+#             concatenation3D_args=concatenation3D_args,
+#             error_correction_args=error_correction_args,
+#             plot_args=plot_args,
+#             batch_args=batch_args,
+#             channels=chans
+#         )
 
-        CT_A12.load()
+#         CT_A12.load()
         
-        labs_to_rem = []
-        for cell in CT_F3.jitcells:
-            center = cell.centers[0]
-            z = int(center[0])
-            if remove_cell[z][current_zid[z]]:
-                labs_to_rem.append(cell.label)
-            current_zid[z]+=1
+#         labs_to_rem = []
+#         for cell in CT_F3.jitcells:
+#             center = cell.centers[0]
+#             z = int(center[0])
+#             if remove_cell[z][current_zid[z]]:
+#                 labs_to_rem.append(cell.label)
+#             current_zid[z]+=1
             
-        for lab in labs_to_rem:
-            CT_F3._del_cell(lab)  
+#         for lab in labs_to_rem:
+#             CT_F3._del_cell(lab)  
                 
-        CT_F3.update_labels() 
+#         CT_F3.update_labels() 
         
-        labs_to_rem = []
-        for cell in CT_A12.jitcells:
-            center = cell.centers[0]
-            z = int(center[0])
-            if remove_cell[z][current_zid[z]]:
-                labs_to_rem.append(cell.label)
-            current_zid[z]+=1
+#         labs_to_rem = []
+#         for cell in CT_A12.jitcells:
+#             center = cell.centers[0]
+#             z = int(center[0])
+#             if remove_cell[z][current_zid[z]]:
+#                 labs_to_rem.append(cell.label)
+#             current_zid[z]+=1
             
-        for lab in labs_to_rem:
-            CT_A12._del_cell(lab)  
+#         for lab in labs_to_rem:
+#             CT_A12._del_cell(lab)  
                 
-        CT_A12.update_labels() 
+#         CT_A12.update_labels() 

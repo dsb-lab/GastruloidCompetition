@@ -8,9 +8,10 @@ from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 size_th_low = [25.0, 25.5, 31.3, 29.0]
+size_th_low = np.array([25.0, 25.5, 36.800000000000004, 24.3, 27.0, 31.3, 24.700000000000003, 29.0])+1
 size_th_high = 250.0
 
-CONDS = ["auxin48", "auxin72", "noauxin72" , "secondaryonly"]
+CONDS = ["auxin_48-72_48", "auxin_48-72_72a", "auxin_48-72_72b" , "auxin_48-72_96", "auxin_72-96_96", "noauxin_72", "noauxin_96", "secondaryonly"]
 
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)

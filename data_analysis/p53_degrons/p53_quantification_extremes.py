@@ -22,10 +22,73 @@ F3 = []
 A12 = []
 
 CONDS = ["auxin48", "auxin72", "noauxin72"]
-F3_backgrounds = np.array([2496.39216396, 2717.58109258, 2523.45981179, 2206.13498618, 2097.02696383, 1921.61948137, 1828.3545534, 1700.845861, 1557.78809637, 1506.0134047])
-A12_backgrounds = np.array([1615.10968548, 1539.48146973, 1527.88985255, 1458.18400646, 1404.53034921, 1352.31062397, 1306.44659299, 1262.34521779, 1203.13280638, 1176.99222449])
-extreme_val_thresholds = [14826.371461477187, 17705.39551461342, 13941.872302924103, 13348.110504016084, 12133.609408707758, 10830.900530986986, 10363.001947595787, 9339.119899193325, 8004.611691222527, 7387.303160446984]
 
+calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+p53_F3_s_global = float(calibF3["s"])
+p53_F3_0z = calibF3["b0z"]
+
+calibA12 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
+p53_A12_s_global = float(calibA12["s"])
+p53_A12_0z = calibA12["b0z"]
+
+def build_union_masks(CT_list):
+    """
+    Build per-z 2D boolean masks marking in-cell pixels from the union of all cells
+    across provided CT objects (e.g., CT_F3 and CT_A12).
+    Returns: list of length Z with arrays (Y, X) dtype=bool.
+    """
+    CT0 = CT_list[0]
+    Z = CT0.hyperstack.shape[1]
+    Y = CT0.hyperstack.shape[-2]
+    X = CT0.hyperstack.shape[-1]
+    Mz_list = [np.zeros((Y, X), dtype=bool) for _ in range(Z)]
+    for CT in CT_list:
+        for cell in CT.jitcells:
+            z = int(cell.centers[0][0])
+            if z < 0 or z >= Z:
+                continue
+            # find mask for this z
+            try:
+                zid = cell.zs[0].index(z)
+            except ValueError:
+                continue
+            mask = cell.masks[0][zid]
+            yy = mask[:, 1].astype(np.intp)
+            xx = mask[:, 0].astype(np.intp)
+            Mz_list[z][yy, xx] = True
+    return Mz_list
+
+def estimate_b0z_for_file(CT, Mz_list, ch_B, ch_C, s_global, q=0.2):
+    # q=0.5 (median) if few high-C cells; q=0.1–0.2 if many might be high
+    import numpy as np
+    Z = CT.hyperstack.shape[1]
+    b0z = np.full(Z, np.nan, dtype=np.float64)
+    for z in range(Z):
+        Mz = Mz_list[z]
+        if not np.any(Mz): continue
+        Bz = CT.hyperstack[0, z, ch_B, :, :].astype(np.float64)
+        Cz = CT.hyperstack[0, z, ch_C, :, :].astype(np.float64)
+        resid = (Cz - s_global * Bz)[Mz].ravel()
+        if resid.size < 50: continue
+        b0z[z] = float(np.quantile(resid, q))
+    # fill empties from available planes
+    if np.any(np.isnan(b0z)):
+        b0z[np.isnan(b0z)] = np.nanmedian(b0z)
+    return b0z
+
+
+def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
+    """Return per-pixel corrected C for one cell at plane z."""
+    yy = mask[:, 1].astype(np.intp)
+    xx = mask[:, 0].astype(np.intp)
+    C_vals = CT_ref.hyperstack[0, z, ch_C, :, :][yy, xx].astype(np.float32)
+    B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
+    return C_vals - float(b0z[z]) - float(s) * B_vals
+
+extreme_val_thresholds = [13068.678466796875, 16818.155395507812, 12987.3173828125, 13056.200744628906, 11479.900085449219, 10226.168518066406, 9835.00520324707, 9196.476104736328, 7593.840606689453, 6879.673645019531]
+extreme_val_thresholds = [8179.218505859375, 10396.903930664062, 8149.3251953125, 8101.474426269531, 7154.188659667969, 6463.565734863281, 6199.764053344727, 5759.637359619141, 4778.408111572266, 4321.629455566406]
+# extreme_val_thresholds = [10623.948486328125, 13607.529663085938, 10568.3212890625, 10578.837585449219, 9317.044372558594, 8344.867126464844, 8017.384628295898, 7478.056732177734, 6186.124359130859, 5600.651550292969]
+extreme_val_thresholds = [12504.209899902344, 15349.344207763672, 11434.93391418457, 11277.261016845703, 10070.376457214355, 8746.919189453125, 8621.400253295898, 7946.640838623047, 6647.256797790527, 5937.099349975586]
 ExtremesF3 = {}
 ExtremesA12 = {}
 for COND in CONDS:
@@ -132,25 +195,37 @@ for COND in CONDS:
 
         CT_A12.load()
 
+        ch_F3 = channel_names.index("F3")
+        ch_A12 = channel_names.index("A12")
+        ch_p53 = channel_names.index("p53")
+        ch_DAPI = channel_names.index("DAPI")
+        
+        Mz_list = build_union_masks([CT_F3])
+        p53_F3_0z = estimate_b0z_for_file(CT_F3, Mz_list, ch_F3, ch_p53, p53_F3_s_global)
+        
         for cell in CT_F3.jitcells:
             center = cell.centers[0]
             z = int(center[0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
             
-            p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - F3_backgrounds[z])
+            Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
+            p53_val = float(np.mean(Ccorr_vals))
             if p53_val > extreme_val_thresholds[z]:
                 ExtremesF3[COND][-1]+=1
         
         ExtremesF3[COND][-1]/=len(CT_F3.jitcells)
         
+        Mz_list = build_union_masks([CT_A12])
+        p53_A12_0z = estimate_b0z_for_file(CT_A12, Mz_list, ch_A12, ch_p53, p53_A12_s_global)
         for cell in CT_A12.jitcells:
             center = cell.centers[0]
             z = int(center[0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
             
-            p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - A12_backgrounds[z])
+            Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
+            p53_val = float(np.mean(Ccorr_vals))            
             if p53_val > extreme_val_thresholds[z]:
                 ExtremesA12[COND][-1]+=1
                 
@@ -219,15 +294,34 @@ plt.show()
 from scipy.stats import ttest_ind
 
 # Define the comparisons you want to annotate (pairs of bar indices)
-comparisons = [(1,2), (2,3)]  # e.g. A12 KO vs A12 WT, F3 WT vs F3 KO
+comparisons = [(0,1), (1,2)] 
 
 # Bar positions
-labels = ["A12 - KO", "A12 - WT", "F3 with WT", "F3 with KO"]
-data = [all_extremeA12_KO, all_extremeA12_WT, all_extremeF3_WT, all_extremeF3_KO]
+# Bar positions
+labels = ["F3 - auxin 48",
+          "F3 - auxin 72", 
+          "F3 - no auxin 72", 
+          "A12 - auxin 48",
+          "A12 - auxin 72", 
+          "A12 - no auxin 72"]
+
+data = [all_extremeF3_auxin48, 
+         all_extremeF3_auxin72, 
+         all_extremeF3_noauxin72, 
+         all_extremeA12_auxin48, 
+         all_extremeA12_auxin72, 
+         all_extremeA12_noauxin72]
+
 
 means = [np.mean(d) for d in data]
 stds  = [np.std(d) for d in data]
-colors = [(0.6, 0.0, 0.6), (0.8, 0.0, 0.8), (0.0, 0.8, 0.0), "cyan"]
+colors = [(0.0, 0.8, 0.0), 
+          "cyan", 
+          (0.0, 0.8, 0.0), 
+          (0.8, 0.0, 0.8),
+          (0.5, 0.0, 0.5),
+          (0.8, 0.0, 0.8)
+          ]
 x = np.arange(len(labels))
 
 # Run tests and add bars
@@ -259,7 +353,7 @@ for i, j in comparisons:
 
     # Example: Welch’s t-test
     _, p = ttest_ind(vals1, vals2, equal_var=False)
-
+    print(p)
     # Bar coordinates
     x1, x2 = x[i], x[j]
     y = ymax + step*h
@@ -282,21 +376,21 @@ for i, j in comparisons:
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
-plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
+# plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
 plt.show()
 
 
-import pandas as pd
+# import pandas as pd
 
-# Keep labels and data in the same order you plot
-labels = ["A12 - KO", "A12 - WT", "F3 with WT", "F3 with KO"]
-data = [all_extremeA12_KO, all_extremeA12_WT, all_extremeF3_WT, all_extremeF3_KO]
+# # Keep labels and data in the same order you plot
+# labels = ["A12 - KO", "A12 - WT", "F3 with WT", "F3 with KO"]
+# data = [all_extremeA12_KO, all_extremeA12_WT, all_extremeF3_WT, all_extremeF3_KO]
 
-# Build a dict of Series to handle different lengths (NaN padding)
-cols = {lab: pd.Series(vals) for lab, vals in zip(labels, data)}
+# # Build a dict of Series to handle different lengths (NaN padding)
+# cols = {lab: pd.Series(vals) for lab, vals in zip(labels, data)}
 
-df = pd.DataFrame(cols)
-# Save to CSV
-path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
-df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
+# df = pd.DataFrame(cols)
+# # Save to CSV
+# path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+# df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
 

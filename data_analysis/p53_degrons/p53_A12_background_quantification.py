@@ -3,7 +3,7 @@
 # =========================
 
 # ---- USER CONFIG ----
-BLEED_FROM = "F3"   # <-- set to "F3" or "A12": the channel that bleeds into C ("p53")
+BLEED_FROM = "A12"   # <-- set to "F3" or "A12": the channel that bleeds into C ("p53")
 C_CHANNEL  = "p53"  # your readout channel (C)
 
 # Limit pixels per z-plane when fitting (to keep memory/time bounded).
@@ -283,7 +283,7 @@ colors = [[] for _ in range(10)]
 # Suppose you’ve just re-loaded CT_F3 and CT_A12 for a *non-secondary* condition
 # and also loaded the calibration file for that same acquisition session/file.
 
-calib = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+calib = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
 s_global = float(calib["s"])
 b0z = calib["b0z"]
 

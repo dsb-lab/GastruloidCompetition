@@ -25,9 +25,18 @@ zs = []
 
 CONDS = ["secondaryonly"]
 files_to_exclude = [
-    "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1.tif",
-    # "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1_new filter.tif"
+    # "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1.tif",
+    "F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1_new filter.tif"
 ]
+
+calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+p53_F3_s_global = float(calibF3["s"])
+p53_F3_0z = calibF3["b0z"]
+
+calibA12 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
+p53_A12_s_global = float(calibA12["s"])
+p53_A12_0z = calibA12["b0z"]
+
 
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
@@ -249,8 +258,13 @@ F3_means
 print("A12")
 A12_means
 
-F3_backgrounds = F3_means
-A12_backgrounds = A12_means
+def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
+    """Return per-pixel corrected C for one cell at plane z."""
+    yy = mask[:, 1].astype(np.intp)
+    xx = mask[:, 0].astype(np.intp)
+    C_vals = CT_ref.hyperstack[0, z, ch_C, :, :][yy, xx].astype(np.float32)
+    B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
+    return C_vals - float(b0z[z]) - float(s) * B_vals
 
 F3 = [[] for z in range(10)]
 A12 = [[] for z in range(10)]
@@ -364,22 +378,24 @@ for C, COND in enumerate(CONDS):
         zs.append(CT_A12.hyperstack.shape[1])
   
         ch_p53 = channel_names.index("p53")
+        ch_F3 = channel_names.index("F3")
+        ch_A12 = channel_names.index("A12")
 
         for cell in CT_F3.jitcells:
-            center = cell.centers[0]
-            z = int(center[0])
+            z = int(cell.centers[0][0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
-            F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - F3_backgrounds[z]))
-            colors[z].append([0.0,0.8,0.0, 0.3])
-            
+            Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
+            F3[z].append(float(np.mean(Ccorr_vals)))
+            colors[z].append([0.0, 0.8, 0.0, 0.3])
+                    
         for cell in CT_A12.jitcells:
-            center = cell.centers[0]
-            z = int(center[0])
+            z = int(cell.centers[0][0])
             zid = cell.zs[0].index(z)
             mask = cell.masks[0][zid]
-            A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]] - A12_backgrounds[z]))
-            colors[z].append([0.8,0.0,0.8, 0.3])
+            Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
+            A12[z].append(float(np.mean(Ccorr_vals)))
+            colors[z].append([0.8, 0.0, 0.8, 0.3])
 
 
 import numpy as np

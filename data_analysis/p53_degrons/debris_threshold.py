@@ -25,7 +25,9 @@ from sklearn.neighbors import KernelDensity
 thresholds = []
 
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-CONDS = ["auxin48", "auxin72", "noauxin72" , "secondaryonly"]
+CONDS = ["auxin_48-72_48", "auxin_48-72_72a", "auxin_48-72_72b" , "auxin_48-72_96", "auxin_72-96_96", "noauxin_72", "noauxin_96", "secondaryonly"]
+# CONDS = ["auxin_48-72_72b"]
+
 
 for COND in CONDS:        
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
