@@ -9,7 +9,8 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 CONDS = ["WT", "KO"]
-repeats = ["n2", "n3", "n4"]
+repeats = ["n2", "n3", "n4", "n3_Ab"]
+repeats = ["n3_Ab"]
 
 
 size_th_low = 31.9

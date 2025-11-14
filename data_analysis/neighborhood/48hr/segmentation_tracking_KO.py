@@ -7,7 +7,6 @@ from scipy import stats
 from stardist.models import StarDist2D
 model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
-
 ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/48hr/KO/'
 path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/48hr/KO/'

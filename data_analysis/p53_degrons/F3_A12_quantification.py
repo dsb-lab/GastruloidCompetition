@@ -185,7 +185,7 @@ for C, COND in enumerate(CONDS):
             A12_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
             A12_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
             A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))                
-            colors[z].append([0.8,0.0,0.8, 0.3])
+            colors[z].append([0.8,0.0,0.8, 0.3]) 
             fates[z].append("A12")
 
 for z in range(zs[-1]):

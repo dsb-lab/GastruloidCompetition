@@ -825,7 +825,7 @@ for i, j in comparisons:
 
     ax.text((x1+x2)/2, y+h, stars, ha='center', va='bottom', fontsize=25)
 
-    step += 5.5  # space out multiple bars
+    step += 5.7  # space out multiple bars
     steps+=1
     if steps==4: step=0 
 plt.tight_layout()

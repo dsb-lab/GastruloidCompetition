@@ -55,6 +55,68 @@ zs = []
 
 all_files = []
 
+calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+p53_F3_s_global = float(calibF3["s"])
+p53_F3_0z = calibF3["b0z"]
+
+calibA12 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
+p53_A12_s_global = float(calibA12["s"])
+p53_A12_0z = calibA12["b0z"]
+
+def build_union_masks(CT_list):
+    """
+    Build per-z 2D boolean masks marking in-cell pixels from the union of all cells
+    across provided CT objects (e.g., CT_F3 and CT_A12).
+    Returns: list of length Z with arrays (Y, X) dtype=bool.
+    """
+    CT0 = CT_list[0]
+    Z = CT0.hyperstack.shape[1]
+    Y = CT0.hyperstack.shape[-2]
+    X = CT0.hyperstack.shape[-1]
+    Mz_list = [np.zeros((Y, X), dtype=bool) for _ in range(Z)]
+    for CT in CT_list:
+        for cell in CT.jitcells:
+            z = int(cell.centers[0][0])
+            if z < 0 or z >= Z:
+                continue
+            # find mask for this z
+            try:
+                zid = cell.zs[0].index(z)
+            except ValueError:
+                continue
+            mask = cell.masks[0][zid]
+            yy = mask[:, 1].astype(np.intp)
+            xx = mask[:, 0].astype(np.intp)
+            Mz_list[z][yy, xx] = True
+    return Mz_list
+
+def estimate_b0z_for_file(CT, Mz_list, ch_B, ch_C, s_global, q=0.2):
+    # q=0.5 (median) if few high-C cells; q=0.1–0.2 if many might be high
+    import numpy as np
+    Z = CT.hyperstack.shape[1]
+    b0z = np.full(Z, np.nan, dtype=np.float64)
+    for z in range(Z):
+        Mz = Mz_list[z]
+        if not np.any(Mz): continue
+        Bz = CT.hyperstack[0, z, ch_B, :, :].astype(np.float64)
+        Cz = CT.hyperstack[0, z, ch_C, :, :].astype(np.float64)
+        resid = (Cz - s_global * Bz)[Mz].ravel()
+        if resid.size < 50: continue
+        b0z[z] = float(np.quantile(resid, q))
+    # fill empties from available planes
+    if np.any(np.isnan(b0z)):
+        b0z[np.isnan(b0z)] = np.nanmedian(b0z)
+    return b0z
+
+
+def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
+    """Return per-pixel corrected C for one cell at plane z."""
+    yy = mask[:, 1].astype(np.intp)
+    xx = mask[:, 0].astype(np.intp)
+    C_vals = CT_ref.hyperstack[0, z, ch_C, :, :][yy, xx].astype(np.float32)
+    B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
+    return C_vals - float(b0z[z]) - float(s) * B_vals
+
 for COND in CONDS:
     for REP in repeats:
         
@@ -160,6 +222,9 @@ for COND in CONDS:
             ch_p53 = channel_names.index("p53")
             ch_DAPI = channel_names.index("DAPI")
 
+            Mz_list = build_union_masks([CT_F3])
+            p53_F3_0z = estimate_b0z_for_file(CT_F3, Mz_list, ch_F3, ch_p53, p53_F3_s_global)
+        
             for cell in CT_F3.jitcells:
                 center = cell.centers[0]
                 z = int(center[0])
@@ -175,13 +240,19 @@ for COND in CONDS:
                 F3_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
                 F3_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
                 
+                Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
                 if COND=="WT":
-                    F3_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    # F3_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    F3_p53_WT[z].append(float(np.mean(Ccorr_vals)))
                 else:
-                    F3_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    # F3_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    F3_p53_KO[z].append(float(np.mean(Ccorr_vals)))
 
                 colors[z].append([0.0,0.8,0.0, 0.3])
-                
+            
+            Mz_list = build_union_masks([CT_A12])
+            p53_A12_0z = estimate_b0z_for_file(CT_A12, Mz_list, ch_A12, ch_p53, p53_A12_s_global)
+            
             for cell in CT_A12.jitcells:
                 center = cell.centers[0]
                 z = int(center[0])
@@ -197,11 +268,13 @@ for COND in CONDS:
                 A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
                 A12_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
                 
+                Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
                 if COND=="WT":
-                    A12_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    # A12_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    A12_p53_WT[z].append(float(np.mean(Ccorr_vals)))
                 else:
-                    A12_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-
+                    # A12_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
+                    A12_p53_KO[z].append(float(np.mean(Ccorr_vals)))
 
                 colors[z].append([0.8,0.0,0.8, 0.3])
 
@@ -301,7 +374,7 @@ def count_extremes(data, method="iqr", threshold=1.5, data_set_for_threshold=Non
     threshold:
        - iqr: multiplier (default 1.5)
        - std: number of stds (default 2)
-       - percentile: cutoff (default 5 → outside 5th–95th)
+       - percentile: cutoff (default 5 → outside 5th-95th)
     """
     
     data = np.asarray(data)
@@ -347,7 +420,6 @@ extreme_threshold = []
 # Overlay individual points (WT)
 z_vals = np.arange(len(F3_p53_WT))
 for z in z_vals:
-
     q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
     iqr = q3 - q1
     upper = q3 + iqr_outlier_threshold * iqr
@@ -534,7 +606,6 @@ ax.legend(handles=legend_elems, frameon=False)
 
 plt.tight_layout()
 plt.show()
-
 
 WT_extremes_ratio = np.array([(WT_extremes[i][1]/WT_extremes[i][2])*100 for i in range(10)])
 KO_extremes_ratio = np.array([(KO_extremes[i][1]/KO_extremes[i][2])*100 for i in range(10)])

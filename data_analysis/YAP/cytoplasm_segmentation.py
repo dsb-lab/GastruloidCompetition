@@ -148,7 +148,6 @@ for COND in CONDITIONS:
             'extension':".tif",
         }
 
-
         CT_nuc = cellSegTrack(
             path_data,
             path_save,
@@ -315,7 +314,6 @@ title = ""
 bins=25
 
 xx = np.linspace(0.2, 1.8, 500)
-
 
 NC_WT = []
 for val in np.array(nuc_quant_WT_WT)/cyt_quant_WT_WT:

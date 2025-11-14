@@ -26,9 +26,73 @@ files_to_exclude = [
 CONDS = ["WT", "KO"]
 repeats = ["n2", "n3", "n4"]
 
-extreme_val_thresholds = [8887.94087721909, 7176.828172813844, 6146.195054116493, 5829.832880998152, 5206.4655345066585, 4966.53252355899, 4250.089479850633, 3973.264464806628, 3614.7661866441063, 3332.6717493337082]
-# extreme_val_thresholds = [7418.227507647827, 6050.493891032715, 5209.560718240686, 4935.292612696378, 4426.689971542723, 4218.030557837337, 3639.625770837681, 3406.214860957358, 3110.682483789724, 2875.9321309865254]
-# extreme_val_thresholds = [5948.5141380765635, 4924.159609251585, 4272.926382364876, 4040.7523443946034, 3646.9144085787852, 3469.5285921156833, 3029.1620618247284, 2839.1652571080867, 2606.598780935342, 2419.1925126393435]
+# 4.5 iqr
+extreme_val_thresholds = [8136.314674377441, 6006.656898498535, 5399.654033660889, 4638.458486557007, 4094.4220390319824, 3730.2568321228027, 3143.496006011963, 2677.543336868286, 2354.30233001709, 1920.6456594467163]
+# 3.5 iqr
+# extreme_val_thresholds = [6703.820213317871, 4963.759117126465, 4453.31978225708, 3828.42795753479, 3378.5835456848145, 3078.6458168029785, 2594.0895347595215, 2211.3092937469482, 1945.340187072754, 1588.9097604751587]
+
+calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
+p53_F3_s_global = float(calibF3["s"])
+p53_F3_0z = calibF3["b0z"]
+
+calibA12 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_A12_to_p53.npz")
+p53_A12_s_global = float(calibA12["s"])
+p53_A12_0z = calibA12["b0z"]
+
+def build_union_masks(CT_list):
+    """
+    Build per-z 2D boolean masks marking in-cell pixels from the union of all cells
+    across provided CT objects (e.g., CT_F3 and CT_A12).
+    Returns: list of length Z with arrays (Y, X) dtype=bool.
+    """
+    CT0 = CT_list[0]
+    Z = CT0.hyperstack.shape[1]
+    Y = CT0.hyperstack.shape[-2]
+    X = CT0.hyperstack.shape[-1]
+    Mz_list = [np.zeros((Y, X), dtype=bool) for _ in range(Z)]
+    for CT in CT_list:
+        for cell in CT.jitcells:
+            z = int(cell.centers[0][0])
+            if z < 0 or z >= Z:
+                continue
+            # find mask for this z
+            try:
+                zid = cell.zs[0].index(z)
+            except ValueError:
+                continue
+            mask = cell.masks[0][zid]
+            yy = mask[:, 1].astype(np.intp)
+            xx = mask[:, 0].astype(np.intp)
+            Mz_list[z][yy, xx] = True
+    return Mz_list
+
+def estimate_b0z_for_file(CT, Mz_list, ch_B, ch_C, s_global, q=0.2):
+    # q=0.5 (median) if few high-C cells; q=0.1–0.2 if many might be high
+    import numpy as np
+    Z = CT.hyperstack.shape[1]
+    b0z = np.full(Z, np.nan, dtype=np.float64)
+    for z in range(Z):
+        Mz = Mz_list[z]
+        if not np.any(Mz): continue
+        Bz = CT.hyperstack[0, z, ch_B, :, :].astype(np.float64)
+        Cz = CT.hyperstack[0, z, ch_C, :, :].astype(np.float64)
+        resid = (Cz - s_global * Bz)[Mz].ravel()
+        if resid.size < 50: continue
+        b0z[z] = float(np.quantile(resid, q))
+    # fill empties from available planes
+    if np.any(np.isnan(b0z)):
+        b0z[np.isnan(b0z)] = np.nanmedian(b0z)
+    return b0z
+
+
+def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
+    """Return per-pixel corrected C for one cell at plane z."""
+    yy = mask[:, 1].astype(np.intp)
+    xx = mask[:, 0].astype(np.intp)
+    C_vals = CT_ref.hyperstack[0, z, ch_C, :, :][yy, xx].astype(np.float32)
+    B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
+    return C_vals - float(b0z[z]) - float(s) * B_vals
+
 
 ExtremesF3 = {}
 ExtremesA12 = {}

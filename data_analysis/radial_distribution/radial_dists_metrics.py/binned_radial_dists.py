@@ -137,10 +137,13 @@ for TIME in TIMES:
 
 
 bin_ns = range(5, 50, 5)
-sigmas = [3,4,5,7.5,10]
+bin_ns = range(10, 20, 5)
+bin_ns = [4]
+sigmas = [5]
 sct_size=10
 line_w = 5
-for density in [True, False]:
+g = 1
+for density in [True]:
     for sigma in sigmas:
         for bin_n in bin_ns:
             if bin_n < 20:
@@ -152,7 +155,7 @@ for density in [True, False]:
             fig, ax = plt.subplots(2,3, figsize=(14,8),sharex=True, sharey=False)
             for t, TIME in enumerate(TIMES):
                 
-                _counts, bins = np.histogram(DISTS_F3_WT[t], bins=bin_n, density=density)
+                _counts, bins = np.histogram(DISTS_F3_WT[t][g], bins=bin_n, density=density)
                 dbins = np.mean(np.diff(bins))
                 bins[1:] -= dbins
                 bins[0] = 0
@@ -171,7 +174,7 @@ for density in [True, False]:
 
                 totals = np.sum(_counts)
                 
-                _counts, bins = np.histogram(DISTS_A12_WT[t], bins=bin_n, density=density)
+                _counts, bins = np.histogram(DISTS_A12_WT[t][g], bins=bin_n, density=density)
                 dbins = np.mean(np.diff(bins))
                 bins[1:] -= dbins
                 bins[0] = 0
@@ -199,7 +202,7 @@ for density in [True, False]:
                 if t==0:
                     ax[0,t].set_ylabel("WT")
                 
-                _counts, bins = np.histogram(DISTS_F3_KO[t], bins=bin_n, density=density)
+                _counts, bins = np.histogram(DISTS_F3_KO[t][g], bins=bin_n, density=density)
                 dbins = np.mean(np.diff(bins))
                 bins[1:] -= dbins
                 bins[0] = 0
@@ -217,7 +220,7 @@ for density in [True, False]:
 
                 totals = np.sum(_counts)
                 
-                _counts, bins = np.histogram(DISTS_A12_KO[t], bins=bin_n, density=density)
+                _counts, bins = np.histogram(DISTS_A12_KO[t][g], bins=bin_n, density=density)
                 dbins = np.mean(np.diff(bins))
                 bins[1:] -= dbins
                 bins[0] = 0
@@ -251,7 +254,8 @@ for density in [True, False]:
                 # ax[0, 0].set_ylabel("cell per ")
                 # ax[1,t].set_ylim
             plt.tight_layout()
-            if density:
-                plt.savefig(path_figures+"density/sigma{}_bins{}_density{}.png".format(sigma, bin_n, density))
-            else:
-                plt.savefig(path_figures+"nondensity/sigma{}_bins{}_density{}.png".format(sigma, bin_n, density))
+            # if density:
+            #     plt.savefig(path_figures+"density/sigma{}_bins{}_density{}.png".format(sigma, bin_n, density))
+            # else:
+            #     plt.savefig(path_figures+"nondensity/sigma{}_bins{}_density{}.png".format(sigma, bin_n, density))
+            plt.show()
