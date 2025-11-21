@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
+from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names, get_intenity_profile
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -211,13 +211,20 @@ for COND in CONDS:
 
             CT_A12.load()
 
+            correction_function, intensity_profile, z_positions = get_intenity_profile(CT_A12, ch_DAPI)
+            
+            stack_p53 = CT_A12.hyperstack[0,:,ch_p53].astype("float64")
+            stack_p53 /= intensity_profile[:, np.newaxis, np.newaxis]  # shape (10,1,1)
+            stack_p53 *= np.mean(intensity_profile)
+            stack_p53 = np.rint(stack_p53).astype("uint16")
+            
             for cell in CT_F3.jitcells:
                 center = cell.centers[0]
                 z = int(center[0])
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
-                
-                p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+
+                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
                 p53_F3[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesF3[COND][REP][-1]+=1
@@ -230,7 +237,7 @@ for COND in CONDS:
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
                 
-                p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
                 p53_A12[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesA12[COND][REP][-1]+=1
@@ -254,7 +261,7 @@ for COND in CONDS:
             df.columns = ["z{}".format(z) for z in range(zn)]
             
             # Step 4: save
-            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/F3.csv".format(COND, REP, embcode), index=False)
+            # df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/F3.csv".format(COND, REP, embcode), index=False)
 
             data = p53_A12
             # Step 1: find the longest column
@@ -267,7 +274,7 @@ for COND in CONDS:
             df.columns = ["z{}".format(z) for z in range(zn)]
             
             # Step 4: save
-            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/A12.csv".format(COND, REP, embcode), index=False)
+            # df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/A12.csv".format(COND, REP, embcode), index=False)
 
 
 ExtremesF3_WT_means = [np.mean(ExtremesF3["WT"][REP]) for REP in repeats]
@@ -423,9 +430,8 @@ for i, j in comparisons:
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
-plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
+# plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
 plt.show()
-
 
 
 import pandas as pd
@@ -439,6 +445,6 @@ cols = {lab: pd.Series(vals) for lab, vals in zip(labels, data)}
 
 df = pd.DataFrame(cols)
 # Save to CSV
-path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
-df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
+# path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+# df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
 

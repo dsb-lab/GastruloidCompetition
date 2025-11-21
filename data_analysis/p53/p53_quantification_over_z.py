@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
+from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names, get_intenity_profile
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -224,7 +224,47 @@ for COND in CONDS:
 
             Mz_list = build_union_masks([CT_F3])
             p53_F3_0z = estimate_b0z_for_file(CT_F3, Mz_list, ch_F3, ch_p53, p53_F3_s_global)
+            
+            correction_function, intensity_profile, z_positions = get_intenity_profile(CT_A12, ch_DAPI)
+            correction_function_p53, intensity_profile_p53, z_positions_p53 = get_intenity_profile(CT_A12, ch_p53)
+            correction_function_p53, intensity_profile_A12, z_positions_p53 = get_intenity_profile(CT_A12, ch_A12)
+            correction_function_p53, intensity_profile_F3, z_positions_p53 = get_intenity_profile(CT_A12, ch_F3)
+
+            intensity_profile /= np.mean(intensity_profile)
+            print("DAPI", intensity_profile[0]- intensity_profile[-1])
+            _intensity_profile_p53 = intensity_profile_p53/np.mean(intensity_profile_p53)
+            print("p53", _intensity_profile_p53[0]- _intensity_profile_p53[-1])
+            _intensity_profile_A12 = intensity_profile_A12/np.mean(intensity_profile_A12)
+            print("A12", _intensity_profile_A12[0]- _intensity_profile_A12[-1])
+            _intensity_profile_F3 = intensity_profile_F3/np.mean(intensity_profile_F3)
+            print("F3", _intensity_profile_F3[0]- _intensity_profile_F3[-1])
+          
+            fig, ax = plt.subplots(figsize=(6,4))
+            ax.plot(intensity_profile, label="intensity prof. DAPI", c='k')
+            ax.set_ylabel("DAPI [a.u.]")
+            ax_p53 = ax.twinx()
+            ax_p53.plot(intensity_profile_p53, label="intensity prof. p53")
+            new_intensity_profile_p53 = (intensity_profile_p53 / intensity_profile) * np.mean(intensity_profile_p53)
+            ax_p53.plot(new_intensity_profile_p53, label="intensity prof. p53 corr.")
+            
+            plt.tight_layout()
+            plt.show()
+            
+            correction_function, intensity_profile, z_positions = get_intenity_profile(CT_A12, ch_DAPI)
+            correction_function_p53, intensity_profile_p53, z_positions_p53 = get_intenity_profile(CT_A12, ch_p53)
+            
         
+
+            
+            print(np.mean(intensity_profile))
+            print(np.mean(intensity_profile_p53))
+            print(np.mean(new_intensity_profile_p53))
+            
+            stack_p53 = CT_A12.hyperstack[0,:,ch_p53].astype("float64")
+            stack_p53 /= intensity_profile[:, np.newaxis, np.newaxis]  # shape (10,1,1)
+            stack_p53 *= np.mean(intensity_profile)
+            stack_p53 = np.rint(stack_p53).astype("uint16")
+            
             for cell in CT_F3.jitcells:
                 center = cell.centers[0]
                 z = int(center[0])
@@ -238,16 +278,20 @@ for COND in CONDS:
                 F3_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
                 F3_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
                 F3_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-                F3_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-                
-                Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
-                if COND=="WT":
-                    # F3_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-                    F3_p53_WT[z].append(float(np.mean(Ccorr_vals)))
-                else:
-                    # F3_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-                    F3_p53_KO[z].append(float(np.mean(Ccorr_vals)))
 
+                # Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
+                # p53_val = float(np.mean(Ccorr_vals))
+                
+                # p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
+                
+                F3_p53[z].append(p53_val)
+                
+                if COND=="WT":
+                    F3_p53_WT[z].append(p53_val)
+                else:
+                    F3_p53_KO[z].append(p53_val)
+                    
                 colors[z].append([0.0,0.8,0.0, 0.3])
             
             Mz_list = build_union_masks([CT_A12])
@@ -266,16 +310,22 @@ for COND in CONDS:
                 A12_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
                 A12_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
                 A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
+                
+                # Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
+                # p53_val = float(np.mean(Ccorr_vals))
+                
+                # p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+                
+                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
+                
                 A12_p53[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
                 
-                Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
+                # Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
                 if COND=="WT":
-                    # A12_p53_WT[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-                    A12_p53_WT[z].append(float(np.mean(Ccorr_vals)))
+                    A12_p53_WT[z].append(p53_val)
                 else:
-                    # A12_p53_KO[z].append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
-                    A12_p53_KO[z].append(float(np.mean(Ccorr_vals)))
-
+                    A12_p53_KO[z].append(p53_val)
+                
                 colors[z].append([0.8,0.0,0.8, 0.3])
 
 
