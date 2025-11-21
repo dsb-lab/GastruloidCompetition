@@ -1,3 +1,6 @@
+# In this file we quantify the emiRFP and mCherry channels and seek for spillovers between channels.
+# We also remove cells that are missclassified
+
 ### LOAD PACKAGE ###
 from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
 

@@ -298,16 +298,21 @@ cyt_quant_KO25_A12 = [cyt_quant_KO25[i] for i in range(len(cyt_quant_KO25)) if A
 
 def remove_outliers(data):
     # Calculate the first and third quartiles (Q1 and Q3)
-    Q1 = np.percentile(data, 25)
-    Q3 = np.percentile(data, 75)
+    data_curated = []
+    for val in data:
+        if not np.isnan(val) and not np.isinf(val):
+            data_curated.append(val)
+        
+    Q1 = np.percentile(data_curated, 25)
+    Q3 = np.percentile(data_curated, 75)
     IQR = Q3 - Q1
 
     # Define the lower and upper bounds for outliers
-    lower_bound = Q1 - 2.5 * IQR
-    upper_bound = Q3 + 2.5 * IQR
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
 
     # Filter data to remove outliers
-    return [x for x in data if lower_bound <= x <= upper_bound]
+    return [x for x in data_curated if lower_bound <= x <= upper_bound]
 
 from scipy import stats
 title = ""
@@ -315,17 +320,12 @@ bins=25
 
 xx = np.linspace(0.2, 1.8, 500)
 
-NC_WT = []
-for val in np.array(nuc_quant_WT_WT)/cyt_quant_WT_WT:
-    if not np.isnan(val) and not np.isinf(val):
-        NC_WT.append(val)
-
-NC_WT = remove_outliers(NC_WT)
+NC_WT = remove_outliers(np.array(nuc_quant_WT_WT)/cyt_quant_WT_WT)
 kde_WT = stats.gaussian_kde(NC_WT)
 
 NC_KO8 = remove_outliers(np.array(nuc_quant_KO8_WT)/cyt_quant_KO8_WT)
 kde_KO8 = stats.gaussian_kde(NC_KO8)
-
+    
 NC_KO25 = remove_outliers(np.array(nuc_quant_KO25_WT)/cyt_quant_KO25_WT)
 kde_KO25 = stats.gaussian_kde(NC_KO25)
 
@@ -365,13 +365,7 @@ df = pd.DataFrame(data, columns=col_names)
 path_save_dir_quant = "/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/YAP/quantifications/KO25/F3.csv"
 df.to_csv(path_save_dir_quant, index=False)
 
-
-NC_WT = []
-for val in np.array(nuc_quant_WT_A12)/cyt_quant_WT_A12:
-    if not np.isnan(val) and not np.isinf(val):
-        NC_WT.append(val)
-
-NC_WT = remove_outliers(NC_WT)
+NC_WT = remove_outliers(np.array(nuc_quant_WT_A12)/cyt_quant_WT_A12)
 kde_WT = stats.gaussian_kde(NC_WT)
 
 NC_KO8 = remove_outliers(np.array(nuc_quant_KO8_A12)/cyt_quant_KO8_A12)

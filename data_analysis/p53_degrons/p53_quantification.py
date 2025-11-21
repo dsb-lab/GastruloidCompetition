@@ -85,7 +85,9 @@ def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
     B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
     return C_vals - float(b0z[z]) - float(s) * B_vals
 
+
 for C, COND in enumerate(CONDS):
+    check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/{}/".format(COND))
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
     path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
         
@@ -198,6 +200,11 @@ for C, COND in enumerate(CONDS):
         Mz_list = build_union_masks([CT_F3])
         p53_F3_0z = estimate_b0z_for_file(CT_F3, Mz_list, ch_F3, ch_p53, p53_F3_s_global)
         
+        zn = CT_F3.hyperstack.shape[1]
+        p53_F3 = [[] for z in range(zn)]
+        p53_A12 = [[] for z in range(zn)]
+        check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/{}/{}/".format(COND, embcode))
+        
         f3 = []
         for cell in CT_F3.jitcells:
             z = int(cell.centers[0][0])
@@ -205,6 +212,7 @@ for C, COND in enumerate(CONDS):
             mask = cell.masks[0][zid]
             Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
             f3.append(float(np.mean(Ccorr_vals)))
+            p53_F3[z].append(float(np.mean(Ccorr_vals)))
             # f3.append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
             
         Mz_list = build_union_masks([CT_A12])
@@ -217,9 +225,41 @@ for C, COND in enumerate(CONDS):
             mask = cell.masks[0][zid]
             Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
             a12.append(float(np.mean(Ccorr_vals)))
+            p53_A12[z].append(float(np.mean(Ccorr_vals)))
+
             # a12.append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
         F3[-1].append(f3)
         A12[-1].append(a12)    
+
+        import pandas as pd
+        import numpy as np
+
+        data = p53_F3
+        # Step 1: find the longest column
+        max_len = max(len(col) for col in data)
+
+        # Step 2: pad shorter columns with NaN (or "" if you prefer)
+        padded = [col + [""] * (max_len - len(col)) for col in data]
+        
+        # Step 3: transpose so rows line up
+        df = pd.DataFrame({f"col_{i}": padded[i] for i in range(len(padded))})
+        df.columns = ["z{}".format(z) for z in range(zn)]
+        
+        # Step 4: save
+        df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/{}/{}/F3.csv".format(COND, embcode), index=False)
+
+        data = p53_A12
+        # Step 1: find the longest column
+        max_len = max(len(col) for col in data)
+
+        # Step 2: pad shorter columns with NaN (or "" if you prefer)
+        padded = [col + [""] * (max_len - len(col)) for col in data]
+        # Step 3: transpose so rows line up
+        df = pd.DataFrame({f"col_{i}": padded[i] for i in range(len(padded))})
+        df.columns = ["z{}".format(z) for z in range(zn)]
+        
+        # Step 4: save
+        df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/{}/{}/A12.csv".format(COND, embcode), index=False)
 
 
 F3_all = []

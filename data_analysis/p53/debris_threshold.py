@@ -1,3 +1,5 @@
+# In this file we compute the debris threshold for each gastruloid
+
 ### LOAD PACKAGE ###
 from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
 import numpy as np

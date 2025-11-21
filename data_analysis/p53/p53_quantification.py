@@ -23,6 +23,8 @@ files_to_exclude = [
     "n2_F3(150)+WT(150)_72h_emiRFP-p53-mCh-DAPI_(40xSil)_Stack2.tif"
 ]
 
+check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/")
+
 CONDS = ["WT", "KO"]
 repeats = ["n2", "n3", "n4"]
 
@@ -93,14 +95,15 @@ def correct_cell_pixels(CT_ref, mask, z, ch_B, ch_C, s, b0z):
     B_vals = CT_ref.hyperstack[0, z, ch_B, :, :][yy, xx].astype(np.float32)
     return C_vals - float(b0z[z]) - float(s) * B_vals
 
-
 ExtremesF3 = {}
 ExtremesA12 = {}
 for COND in CONDS:
+    check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/".format(COND))
     ExtremesF3[COND] = {}
     ExtremesA12[COND] = {}
 
     for REP in repeats:
+        check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/".format(COND, REP))
         ExtremesF3[COND][REP] = []
         ExtremesA12[COND][REP] = []
 
@@ -108,7 +111,6 @@ for COND in CONDS:
         path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/{}/{}/".format(COND,REP)
 
         check_or_create_dir(path_save_dir)
-
         files = get_file_names(path_data_dir)
 
         channel_names = ["A12", "p53", "F3", "DAPI"]
@@ -123,7 +125,7 @@ for COND in CONDS:
             if file in files_to_exclude: continue
             ExtremesF3[COND][REP].append(0)
             ExtremesA12[COND][REP].append(0)
-
+            
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
             path_save = path_save_dir+embcode
@@ -181,6 +183,10 @@ for COND in CONDS:
 
             CT_F3.load()
 
+            zn = CT_F3.hyperstack.shape[1]
+            p53_F3 = [[] for z in range(zn)]
+            p53_A12 = [[] for z in range(zn)]
+
             ch = channel_names.index("A12")
             batch_args = {
                 'name_format':"ch"+str(ch)+"_{}",
@@ -212,6 +218,7 @@ for COND in CONDS:
                 mask = cell.masks[0][zid]
                 
                 p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+                p53_F3[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesF3[COND][REP][-1]+=1
             
@@ -224,10 +231,44 @@ for COND in CONDS:
                 mask = cell.masks[0][zid]
                 
                 p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
+                p53_A12[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesA12[COND][REP][-1]+=1
                     
             ExtremesA12[COND][REP][-1]/=len(CT_A12.jitcells)
+
+            check_or_create_dir("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/".format(COND, REP, embcode))
+            
+            import pandas as pd
+            import numpy as np
+
+            data = p53_F3
+            # Step 1: find the longest column
+            max_len = max(len(col) for col in data)
+
+            # Step 2: pad shorter columns with NaN (or "" if you prefer)
+            padded = [col + [""] * (max_len - len(col)) for col in data]
+            
+            # Step 3: transpose so rows line up
+            df = pd.DataFrame({f"col_{i}": padded[i] for i in range(len(padded))})
+            df.columns = ["z{}".format(z) for z in range(zn)]
+            
+            # Step 4: save
+            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/F3.csv".format(COND, REP, embcode), index=False)
+
+            data = p53_A12
+            # Step 1: find the longest column
+            max_len = max(len(col) for col in data)
+
+            # Step 2: pad shorter columns with NaN (or "" if you prefer)
+            padded = [col + [""] * (max_len - len(col)) for col in data]
+            # Step 3: transpose so rows line up
+            df = pd.DataFrame({f"col_{i}": padded[i] for i in range(len(padded))})
+            df.columns = ["z{}".format(z) for z in range(zn)]
+            
+            # Step 4: save
+            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/A12.csv".format(COND, REP, embcode), index=False)
+
 
 ExtremesF3_WT_means = [np.mean(ExtremesF3["WT"][REP]) for REP in repeats]
 ExtremesF3_WT_stds = [np.std(ExtremesF3["WT"][REP]) for REP in repeats]
@@ -289,8 +330,6 @@ from scipy.stats import ks_2samp
 
 ks_stat, p_ks = ks_2samp(all_extremeF3_WT, all_extremeF3_KO)
 print(f"KS test: D={ks_stat:.3f}, p={p_ks:.3e}")
-
-
 
 # Bar positions
 labels = ["A12 - KO","A12 - WT", "F3 with WT", "F3 with KO"]
