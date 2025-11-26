@@ -1,9 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names, get_intenity_profile
-
-### LOAD STARDIST MODEL ###
-from stardist.models import StarDist2D
-model = StarDist2D.from_pretrained('2D_versatile_fluo')
+from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -132,29 +128,13 @@ for COND in CONDS:
                 
             check_or_create_dir(path_save)
 
-            ### DEFINE ARGUMENTS ###
-            segmentation_args={
-                'method': 'stardist2D', 
-                'model': model, 
-                'blur': [2,1], 
-                'min_outline_length':100,
-            }
-
-            concatenation3D_args = {
-                'do_3Dconcatenation': False
-            }
-
-            error_correction_args = {
-                'backup_steps': 10,
-                'line_builder_mode': 'points',
-            }
-
             ch = channel_names.index("F3")
 
             batch_args = {
                 'name_format':"ch"+str(ch)+"_{}",
                 'extension':".tif",
             } 
+
             plot_args = {
                 'plot_layout': (1,1),
                 'plot_overlap': 1,
@@ -164,7 +144,7 @@ for COND in CONDS:
                 'channels':[ch],
                 'min_outline_length':75,
             }
-
+            
             chans = [ch]
             for _ch in range(len(channel_names)):
                 if _ch not in chans:
@@ -173,9 +153,6 @@ for COND in CONDS:
             CT_F3 = cellSegTrack(
                 path_data,
                 path_save,
-                segmentation_args=segmentation_args,
-                concatenation3D_args=concatenation3D_args,
-                error_correction_args=error_correction_args,
                 plot_args=plot_args,
                 batch_args=batch_args,
                 channels=chans
@@ -188,11 +165,22 @@ for COND in CONDS:
             p53_A12 = [[] for z in range(zn)]
 
             ch = channel_names.index("A12")
+            
             batch_args = {
                 'name_format':"ch"+str(ch)+"_{}",
                 'extension':".tif",
             }
 
+            plot_args = {
+                'plot_layout': (1,1),
+                'plot_overlap': 1,
+                'masks_cmap': 'tab10',
+                'plot_stack_dims': (256, 256), 
+                'plot_centers':[False, False], # [Plot center as a dot, plot label on 3D center]
+                'channels':[ch],
+                'min_outline_length':75,
+            }
+            
             chans = [ch]
             for _ch in range(len(channel_names)):
                 if _ch not in chans:
@@ -201,9 +189,6 @@ for COND in CONDS:
             CT_A12 = cellSegTrack(
                 path_data,
                 path_save,
-                segmentation_args=segmentation_args,
-                concatenation3D_args=concatenation3D_args,
-                error_correction_args=error_correction_args,
                 plot_args=plot_args,
                 batch_args=batch_args,
                 channels=chans
@@ -211,20 +196,14 @@ for COND in CONDS:
 
             CT_A12.load()
 
-            correction_function, intensity_profile, z_positions = get_intenity_profile(CT_A12, ch_DAPI)
-            
-            stack_p53 = CT_A12.hyperstack[0,:,ch_p53].astype("float64")
-            stack_p53 /= intensity_profile[:, np.newaxis, np.newaxis]  # shape (10,1,1)
-            stack_p53 *= np.mean(intensity_profile)
-            stack_p53 = np.rint(stack_p53).astype("uint16")
-            
             for cell in CT_F3.jitcells:
                 center = cell.centers[0]
                 z = int(center[0])
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
 
-                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
+                Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
+                p53_val = float(np.mean(Ccorr_vals))
                 p53_F3[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesF3[COND][REP][-1]+=1
@@ -236,8 +215,9 @@ for COND in CONDS:
                 z = int(center[0])
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
-                
-                p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
+
+                Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
+                p53_val = float(np.mean(Ccorr_vals))
                 p53_A12[z].append(p53_val)
                 if p53_val > extreme_val_thresholds[z]:
                     ExtremesA12[COND][REP][-1]+=1
@@ -261,7 +241,7 @@ for COND in CONDS:
             df.columns = ["z{}".format(z) for z in range(zn)]
             
             # Step 4: save
-            # df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/F3.csv".format(COND, REP, embcode), index=False)
+            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/F3.csv".format(COND, REP, embcode), index=False)
 
             data = p53_A12
             # Step 1: find the longest column
@@ -274,7 +254,7 @@ for COND in CONDS:
             df.columns = ["z{}".format(z) for z in range(zn)]
             
             # Step 4: save
-            # df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/A12.csv".format(COND, REP, embcode), index=False)
+            df.to_csv("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantifications/{}/{}/{}/A12.csv".format(COND, REP, embcode), index=False)
 
 
 ExtremesF3_WT_means = [np.mean(ExtremesF3["WT"][REP]) for REP in repeats]
@@ -401,7 +381,6 @@ ax.set_xticklabels(labels, rotation=20)
 ax.set_ylabel("Ratio of p53-high cells")
 ax.set_title("Bar plot with individual datapoints")
 
-
 for i, j in comparisons:
     vals1, vals2 = data[i], data[j]
 
@@ -430,7 +409,7 @@ for i, j in comparisons:
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
-# plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
+plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/barplots.svg")
 plt.show()
 
 
@@ -445,6 +424,6 @@ cols = {lab: pd.Series(vals) for lab, vals in zip(labels, data)}
 
 df = pd.DataFrame(cols)
 # Save to CSV
-# path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
-# df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/"
+df.to_csv(path_save+"barplot_underlying_data.csv", index=False)
 

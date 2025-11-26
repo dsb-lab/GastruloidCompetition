@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names
+from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names, get_intenity_profile
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -8,27 +8,16 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 import numpy as np
 import matplotlib.pyplot as plt
 
-F3_all = [[] for z in range(10)]
-F3_F3 = [[] for z in range(10)]
-F3_A12 = [[] for z in range(10)]
-F3_DAPI = [[] for z in range(10)]
-F3_p53 = [[] for z in range(10)]
-
-F3_p53_WT = [[] for z in range(10)]
-F3_p53_KO = [[] for z in range(10)]
-
-A12_p53_WT = [[] for z in range(10)]
-A12_p53_KO = [[] for z in range(10)]
-
-A12_all = [[] for z in range(10)]
-A12_F3 = [[] for z in range(10)]
-A12_A12 = [[] for z in range(10)]
-A12_DAPI = [[] for z in range(10)]
-A12_p53 = [[] for z in range(10)]
-
-DAPI_all = [[] for z in range(10)]
-
-colors = [[] for z in range(10)]
+import matplotlib as mpl
+plt.rcParams.update({
+    "text.usetex": True,
+})
+mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
+mpl.rc('font', size=18) 
+mpl.rc('axes', labelsize=18) 
+mpl.rc('xtick', labelsize=18) 
+mpl.rc('ytick', labelsize=18) 
+mpl.rc('legend', fontsize=18) 
 
 files_to_exclude = [
     "n2_F3(150)+WT(150)_72h_emiRFP-p53-mCh-DAPI_(40xSil)_Stack1.tif",
@@ -36,11 +25,14 @@ files_to_exclude = [
 ]
 
 CONDS = ["WT", "KO"]
+
 repeats = ["n2", "n3", "n4"]
 
-zs = []
-
-all_files = []
+g_names = []
+data_F3 = []
+data_A12 = []
+cells_F3 = []
+cells_A12 = []
 
 calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
 p53_F3_s_global = float(calibF3["s"])
@@ -119,8 +111,10 @@ for COND in CONDS:
         for f, file in enumerate(files):
             
             if file in files_to_exclude: continue
-            
-            all_files.append(file)
+
+            F3_p53 = [[] for z in range(10)]
+            A12_p53 = [[] for z in range(10)]
+
             path_data = path_data_dir+file
             file, embcode = get_file_name(path_data_dir, file, allow_file_fragment=False, return_files=False, return_name=True)
             path_save = path_save_dir+embcode
@@ -201,8 +195,6 @@ for COND in CONDS:
             )
 
             CT_A12.load()
-
-            zs.append(CT_A12.hyperstack.shape[1])
             
             ch_F3 = channel_names.index("F3")
             ch_A12 = channel_names.index("A12")
@@ -220,14 +212,6 @@ for COND in CONDS:
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
 
-                F3_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-                A12_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-                DAPI_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-
-                F3_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-                F3_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-                F3_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-
                 Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
                 p53_val = float(np.mean(Ccorr_vals))
                 
@@ -235,13 +219,7 @@ for COND in CONDS:
                 # p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
                 
                 F3_p53[z].append(p53_val)
-                
-                if COND=="WT":
-                    F3_p53_WT[z].append(p53_val)
-                else:
-                    F3_p53_KO[z].append(p53_val)
                     
-                colors[z].append([0.0,0.8,0.0, 0.3])
             
             Mz_list = build_union_masks([CT_A12])
             p53_A12_0z = estimate_b0z_for_file(CT_A12, Mz_list, ch_A12, ch_p53, p53_A12_s_global)
@@ -252,44 +230,120 @@ for COND in CONDS:
                 zid = cell.zs[0].index(z)
                 mask = cell.masks[0][zid]
 
-                F3_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-                A12_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-                DAPI_all[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-                
-                A12_F3[z].append(np.mean(CT_A12.hyperstack[0,z,ch_F3,:,:][mask[:,1], mask[:,0]]))
-                A12_A12[z].append(np.mean(CT_A12.hyperstack[0,z,ch_A12,:,:][mask[:,1], mask[:,0]]))
-                A12_DAPI[z].append(np.mean(CT_A12.hyperstack[0,z,ch_DAPI,:,:][mask[:,1], mask[:,0]]))
-                
                 Ccorr_vals = correct_cell_pixels(CT_A12, mask, z, ch_A12, ch_p53, p53_A12_s_global, p53_A12_0z)
                 p53_val = float(np.mean(Ccorr_vals))
                 
                 # p53_val = np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]])
-                
                 # p53_val = np.mean(stack_p53[z, mask[:,1], mask[:,0]])
                 
                 A12_p53[z].append(p53_val)
-                if COND=="WT":
-                    A12_p53_WT[z].append(p53_val)
-                else:
-                    A12_p53_KO[z].append(p53_val)
-                
-                colors[z].append([0.8,0.0,0.8, 0.3])
+            
+            
+            F3_p53_means = [np.mean(d) for d in F3_p53]
+            A12_p53_means = [np.mean(d) for d in A12_p53]
+            c_F3 = [len(d) for d in F3_p53]
+            c_A12 = [len(d) for d in A12_p53]
+
+            cells_F3.append(c_F3)
+            cells_A12.append(c_A12)
+            data_F3.append(F3_p53_means)
+            data_A12.append(A12_p53_means)
+            g_names.append(embcode)
+            
+
+import pandas as pd
+Z = len(data_F3[0])  # number of z planes, generally 10
+
+df = pd.DataFrame(
+    data_F3,
+    index=g_names,
+    columns=[f"z{j}" for j in range(Z)]
+)
+
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantification_per_gastruloid/"
+check_or_create_dir(path_save)
+df.to_csv(path_save+"F3.csv")
+
+import pandas as pd
+Z = len(data_A12[0])  # number of z planes, generally 10
+
+df = pd.DataFrame(
+    data_A12,
+    index=g_names,
+    columns=[f"z{j}" for j in range(Z)]
+)
+
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantification_per_gastruloid/"
+check_or_create_dir(path_save)
+df.to_csv(path_save+"A12.csv")
+
+import pandas as pd
+Z = len(cells_F3[0])  # number of z planes, generally 10
+
+df = pd.DataFrame(
+    cells_F3,
+    index=g_names,
+    columns=[f"z{j}" for j in range(Z)]
+)
+
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantification_per_gastruloid/"
+check_or_create_dir(path_save)
+df.to_csv(path_save+"F3_number_of_cells.csv")
+
+import pandas as pd
+Z = len(cells_A12[0])  # number of z planes, generally 10
+
+df = pd.DataFrame(
+    cells_A12,
+    index=g_names,
+    columns=[f"z{j}" for j in range(Z)]
+)
+
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantification_per_gastruloid/"
+check_or_create_dir(path_save)
+df.to_csv(path_save+"A12_number_of_cells.csv")
+
+    
+weighted_by_z = []
+
+N_WT = len(g_names[:10])
+
+for z in range(Z):
+    means_z = np.array([data_F3[g][z] for g in range(N_WT)])
+    weights_z = np.array([cells_F3[g][z] for g in range(N_WT)])
+    w_avg_z = np.sum(means_z * weights_z) / np.sum(weights_z)
+    weighted_by_z.append(w_avg_z)
 
 
-all_vals = [[*F3_p53_WT[z], *F3_p53_KO[z]] for z in range(10)]
+N = len(g_names)
+data_F3_norm = []
+for g in range(N):
+    norm_g = np.array(data_F3[g])/weighted_by_z
+    data_F3_norm.append(norm_g)
+    
+import pandas as pd
+Z = len(cells_A12[0])  # number of z planes, generally 10
 
-iqr_outlier_threshold = 4.5
+df = pd.DataFrame(
+    data_F3_norm,
+    index=g_names,
+    columns=[f"z{j}" for j in range(Z)]
+)
 
-extreme_threshold = []
-# Overlay individual points (WT)
-z_vals = np.arange(len(F3_p53_WT))
-for z in z_vals:
+# Save to CSV
+path_save = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53/quantification_per_gastruloid/"
+check_or_create_dir(path_save)
+df.to_csv(path_save+"F3_norm.csv")
 
-    q1, q3 = np.percentile(np.array(all_vals[z]), [25, 75])
-    iqr = q3 - q1
-    upper = q3 + iqr_outlier_threshold * iqr
-    extreme_threshold.append(upper)
+data_WT = [np.average(data_F3_norm[g][1:], weights=cells_F3[g][1:]) for g in range(N_WT)]
+data_KO = [np.average(data_F3_norm[g][1:], weights=cells_F3[g][1:]) for g in range(N_WT, N)]
 
-print("Thresholds")
-print(extreme_threshold)
+print(data_WT)
+print(data_KO)
 
+np.mean(data_WT)
+np.mean(data_KO)
