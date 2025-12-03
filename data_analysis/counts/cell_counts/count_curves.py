@@ -1,5 +1,5 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, save_4Dstack, save_4Dstack_labels, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
+from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,11 +9,11 @@ model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
 # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
 experiment = "2023_11_17_Casp3"
-experiment = "2024_03_Casp3"
+# experiment = "2024_03_Casp3"
 
 TIMES = ["48hr", "72hr", "96hr"]
 CONDS = ["WT", "KO"]
-stage = "late"
+stage = "early"
 
 F3_WT = []
 A12_WT = []
@@ -45,8 +45,8 @@ for TIME in TIMES:
 
         # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
         channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-        # if "96hr" in path_data_dir:
-        #     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+        if "96hr" in path_data_dir:
+            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
         F3_counts = []
         Casp3_F3_counts = []
@@ -398,7 +398,6 @@ max_lim = np.maximum(maxF3, maxA12)
 ax[1,0].set_ylim(0, max_lim)
 ax[1,1].set_ylim(0, max_lim)
 
-
-plt.savefig(pth_save_fig)
+# plt.savefig(pth_save_fig)
 plt.show()
 
