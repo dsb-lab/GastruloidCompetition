@@ -32,7 +32,7 @@ DISTS_F3_KO = []
 DISTS_A12_KO = []
 DISTS_apo_KO = []
 
-EXPERIMENTS = ["2023_11_17_Casp3", "2024_03_Casp3"]
+EXPERIMENTS = ["2023_11_17_Casp3"]
 # EXPERIMENTS = ["2023_11_17_Casp3"]
 
 TIMES = ["48hr", "72hr", "96hr"]
@@ -511,8 +511,8 @@ def sign_test(deltas):
     return binomtest(k, n, 0.5, alternative="two-sided").pvalue
 
 
-f3_list  = DISTS_F3_WT[2]   # list of arrays, one per gastruloid
-a12_list = DISTS_A12_WT[2]  # list of arrays, one per gastruloid
+f3_list  = DISTS_F3_WT[1]   # list of arrays, one per gastruloid
+a12_list = DISTS_A12_WT[1]  # list of arrays, one per gastruloid
 
 dmeds = []
 for f3, a12 in zip(f3_list, a12_list):

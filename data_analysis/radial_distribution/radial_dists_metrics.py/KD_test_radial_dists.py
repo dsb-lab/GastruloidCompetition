@@ -32,7 +32,7 @@ DISTS_F3_KO = []
 DISTS_A12_KO = []
 DISTS_apo_KO = []
 
-EXPERIMENTS = ["2023_11_17_Casp3", "2024_03_Casp3"]
+EXPERIMENTS = ["2023_11_17_Casp3"]
 # EXPERIMENTS = ["2024_03_Casp3"]
 
 TIMES = ["48hr", "72hr", "96hr"]

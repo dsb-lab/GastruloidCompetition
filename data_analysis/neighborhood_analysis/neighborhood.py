@@ -1,9 +1,8 @@
 ### LOAD PACKAGE ###
-from qlivecell import get_file_name, cellSegTrack, save_4Dstack, norm_stack_per_z, compute_labels_stack, get_file_names, construct_RGB, extract_fluoro, correct_drift, correct_path
+from qlivecell import get_file_name, cellSegTrack, check_or_create_dir, get_file_names, construct_RGB, extract_fluoro, correct_drift, correct_path
 import numpy as np
 import matplotlib.pyplot as plt
-
-# test
+import pandas as pd
 
 ### LOAD STARDIST MODEL ###
 from stardist.models import StarDist2D
@@ -20,12 +19,15 @@ mpl.rc('xtick', labelsize=14)
 mpl.rc('ytick', labelsize=14) 
 mpl.rc('legend', fontsize=14) 
 
-path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/thesis/figures/neighborhood/"
-# experiment = "2023_11_17_Casp3"
-experiment = "2024_03_Casp3"
+path_figures = "/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/neighborhood/"
+experiment = "2023_11_17_Casp3"
+# experiment = "2024_03_Casp3"
 for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
+    check_or_create_dir(path_figures+"{}/".format(number_of_neighs))
     fig, ax = plt.subplots(2,3, figsize=(12,6), sharey=True, sharex='col')
     for ap, apo_stage in enumerate(["early", "mid", "late"]):
+        
+        check_or_create_dir(path_figures+"{}/{}/".format(number_of_neighs, apo_stage))
 
         NEIGHS_F3 = [[], []]
         NEIGHS_A12 = [[], []]
@@ -33,8 +35,8 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
         NEIGHS_A12_apo = [[], []]
             
         # ### PATH TO YOU DATA FOLDER AND TO YOUR SAVING FOLDER ###
-        # TIMES = ["48hr", "72hr", "96hr"]
-        TIMES = ["48hr", "60hr", "72hr", "96hr"]
+        TIMES = ["48hr", "72hr", "96hr"]
+        # TIMES = ["48hr", "60hr", "72hr", "96hr"]
         CONDS = ["WT", "KO"]
         
         for TTT, TIME in enumerate(TIMES):
@@ -51,10 +53,10 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                 ### GET FULL FILE NAME AND FILE CODE ###
                 files_data = get_file_names(path_data_dir)
 
-                channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
                 # channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-                # if "96hr" in path_data_dir:
-                #     channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+                if "96hr" in path_data_dir:
+                    channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
 
                 neighs_fates_F3_sum = np.zeros((len(files_data), 2))
                 neighs_fates_A12_sum = np.zeros((len(files_data), 2))
@@ -364,7 +366,7 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
                 NEIGHS_F3_apo[CCC].append(neighs_fates_Casp3_F3_sum)
                 NEIGHS_A12[CCC].append(neighs_fates_A12_sum)
                 NEIGHS_A12_apo[CCC].append(neighs_fates_Casp3_A12_sum)
-
+        
         F3s_mean_F3_neigh_WT = np.array([np.nanmean(NEIGHS_F3[0][i][:, 0]) for i in range(len(TIMES))])
         F3s_mean_F3_neigh_KO = np.array([np.nanmean(NEIGHS_F3[1][i][:, 0]) for i in range(len(TIMES))])
         F3s_mean_A12_neigh_WT = np.array([np.nanmean(NEIGHS_F3[0][i][:, 1]) for i in range(len(TIMES))])
@@ -386,8 +388,80 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
         A12s_apo_mean_A12_neigh_KO = np.array([np.nanmean(NEIGHS_A12_apo[1][i][:, 1]) for i in range(len(TIMES))])
 
 
-        # conds = np.array([48, 72, 96])
-        conds = np.array([48, 60, 72, 96])
+        F3s_std_F3_neigh_WT = np.array([np.nanstd(NEIGHS_F3[0][i][:, 0]) for i in range(len(TIMES))])
+        F3s_std_F3_neigh_KO = np.array([np.nanstd(NEIGHS_F3[1][i][:, 0]) for i in range(len(TIMES))])
+        F3s_std_A12_neigh_WT = np.array([np.nanstd(NEIGHS_F3[0][i][:, 1]) for i in range(len(TIMES))])
+        F3s_std_A12_neigh_KO = np.array([np.nanstd(NEIGHS_F3[1][i][:, 1]) for i in range(len(TIMES))])
+
+        F3s_apo_std_F3_neigh_WT = np.array([np.nanstd(NEIGHS_F3_apo[0][i][:, 0]) for i in range(len(TIMES))])
+        F3s_apo_std_F3_neigh_KO = np.array([np.nanstd(NEIGHS_F3_apo[1][i][:, 0]) for i in range(len(TIMES))])
+        F3s_apo_std_A12_neigh_WT = np.array([np.nanstd(NEIGHS_F3_apo[0][i][:, 1]) for i in range(len(TIMES))])
+        F3s_apo_std_A12_neigh_KO = np.array([np.nanstd(NEIGHS_F3_apo[1][i][:, 1]) for i in range(len(TIMES))])
+
+        A12s_std_F3_neigh_WT = np.array([np.nanstd(NEIGHS_A12[0][i][:, 0]) for i in range(len(TIMES))])
+        A12s_std_F3_neigh_KO = np.array([np.nanstd(NEIGHS_A12[1][i][:, 0]) for i in range(len(TIMES))])
+        A12s_std_A12_neigh_WT = np.array([np.nanstd(NEIGHS_A12[0][i][:, 1]) for i in range(len(TIMES))])
+        A12s_std_A12_neigh_KO = np.array([np.nanstd(NEIGHS_A12[1][i][:, 1]) for i in range(len(TIMES))])
+
+        A12s_apo_std_F3_neigh_WT = np.array([np.nanstd(NEIGHS_A12_apo[0][i][:, 0]) for i in range(len(TIMES))])
+        A12s_apo_std_F3_neigh_KO = np.array([np.nanstd(NEIGHS_A12_apo[1][i][:, 0]) for i in range(len(TIMES))])
+        A12s_apo_std_A12_neigh_WT = np.array([np.nanstd(NEIGHS_A12_apo[0][i][:, 1]) for i in range(len(TIMES))])
+        A12s_apo_std_A12_neigh_KO = np.array([np.nanstd(NEIGHS_A12_apo[1][i][:, 1]) for i in range(len(TIMES))])
+
+        non_apo = np.array(F3s_mean_A12_neigh_WT)
+        apo = np.array(F3s_apo_mean_A12_neigh_WT)
+
+        # Build dataframe
+        df = pd.DataFrame(
+            [non_apo, apo],
+            index=["non-apo", "apo"],
+            columns=conds
+        )
+
+        # Save as CSV
+        df.to_csv(path_figures+"{}/{}/F3s_mean_A12_neigh_WT.csv".format(number_of_neighs, apo_stage))
+
+        non_apo = np.array(F3s_mean_A12_neigh_KO)
+        apo = np.array(F3s_apo_mean_A12_neigh_KO)
+
+        # Build dataframe
+        df = pd.DataFrame(
+            [non_apo, apo],
+            index=["non-apo", "apo"],
+            columns=conds
+        )
+
+        # Save as CSV
+        df.to_csv(path_figures+"{}/{}/F3s_mean_A12_neigh_KO.csv".format(number_of_neighs, apo_stage))
+
+
+        non_apo = np.array(F3s_std_A12_neigh_WT)
+        apo = np.array(F3s_apo_std_A12_neigh_WT)   
+        # Build dataframe
+        df = pd.DataFrame(
+            [non_apo, apo],
+            index=["non-apo", "apo"],
+            columns=conds
+        )
+
+        # Save as CSV
+        df.to_csv(path_figures+"{}/{}/F3s_std_A12_neigh_WT.csv".format(number_of_neighs, apo_stage))
+
+        non_apo = np.array(F3s_std_A12_neigh_KO)
+        apo = np.array(F3s_apo_std_A12_neigh_KO)
+
+        # Build dataframe
+        df = pd.DataFrame(
+            [non_apo, apo],
+            index=["non-apo", "apo"],
+            columns=conds
+        )
+
+        # Save as CSV
+        df.to_csv(path_figures+"{}/{}/F3s_std_A12_neigh_KO.csv".format(number_of_neighs, apo_stage))
+
+        conds = np.array([48, 72, 96])
+        # conds = np.array([48, 60, 72, 96])
 
         ax[0, ap].set_title("{} apoptotis".format(apo_stage))
         ax[0, ap].plot(conds, F3s_mean_A12_neigh_WT, color=[0.9,0.0,0.9], lw=4, label="F3")
@@ -413,6 +487,6 @@ for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:
             ax[1, ap].legend()
         
     plt.tight_layout()
-    plt.savefig(path_figures+"neighborhood_{}_{}.svg".format(experiment, number_of_neighs))
-    plt.savefig(path_figures+"neighborhood_{}_{}.pdf".format(experiment, number_of_neighs))
+    # plt.savefig(path_figures+"neighborhood_{}_{}.svg".format(experiment, number_of_neighs))
+    # plt.savefig(path_figures+"neighborhood_{}_{}.pdf".format(experiment, number_of_neighs))
 plt.show()

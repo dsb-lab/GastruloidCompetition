@@ -442,12 +442,12 @@ def plot_gastruloid_bars_A12(CONDS, A12, ylabel="Mean fluorescence (per gastrulo
 
 
 fig, ax = plot_gastruloid_bars(CONDS, F3, A12, ylabel="Mean fluorescence (a.u.)")
-plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_all.pdf")
+# plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_all.pdf")
 plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_all.svg")
 plt.show()
 
 fig, ax = plot_gastruloid_bars_all(CONDS, F3_all, A12_all)
-plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_alldatapoints.pdf")
+# plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_alldatapoints.pdf")
 plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/p53_quantification/p53quant_alldatapoints.svg")
 plt.show()
 

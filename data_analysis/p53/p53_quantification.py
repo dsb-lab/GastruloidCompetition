@@ -283,7 +283,7 @@ ax.set_xticks(x)                  # one tick per pair
 ax.set_xticklabels(repeats)       # label with REP names
 
 # Axes labels & legend
-ax.set_ylabel("Ratio of p53-high cells")
+ax.set_ylabel("Proportion of p53-high cells")
 ax.set_title("WT vs KO (F3)")
 ax.legend()
 
@@ -333,7 +333,7 @@ bars = ax.bar(x, means, yerr=stds, capsize=5, color=colors)
 # Labels and formatting
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
-ax.set_ylabel("Ratio of p53-high cells")
+ax.set_ylabel("Proportion of p53-high cells")
 plt.show()
 
 bins = 10
@@ -378,7 +378,7 @@ for i, vals in enumerate(data):
 # Labels and formatting
 ax.set_xticks(x)
 ax.set_xticklabels(labels, rotation=20)
-ax.set_ylabel("Ratio of p53-high cells")
+ax.set_ylabel("Proportion of p53-high cells")
 ax.set_title("Bar plot with individual datapoints")
 
 for i, j in comparisons:

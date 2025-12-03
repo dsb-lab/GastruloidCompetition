@@ -82,6 +82,7 @@ zs = []
 all_files = []
 
 CONDS = ["auxin48", "auxin72", "noauxin72"]
+CONDS = ["auxin_48-72_48", "auxin_48-72_72" , "auxin_48-72_96", "auxin_72-96_72", "auxin_72-96_96", "noauxin_72", "noauxin_96"]
 
 calibF3 = np.load("/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/secondaryonly/F3(150)+OsTIR9-40(25)_48h_emiRFP-2ndaryA488-mCh-DAPI_(40xSil)_Stack1/calibration_F3_to_p53.npz")
 p53_F3_s_global = float(calibF3["s"])
@@ -244,7 +245,7 @@ for C, COND in enumerate(CONDS):
 
 
 all_vals = F3_p53
-iqr_outlier_threshold = 3.5
+iqr_outlier_threshold = 4.5
 
 extreme_threshold = []
 # Overlay individual points (WT)
