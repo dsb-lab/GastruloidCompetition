@@ -12,8 +12,11 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
     path_figures_exp = path_figures+"{}/".format(experiment)
     check_or_create_dir(path_figures_exp)
     
-    for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:    
-        filenames = []
+    for number_of_neighs in [5 ,10, 15, 20, 30, 50, 75, 100, 200]:  
+        filenames_early = []
+        filenames_mid = []
+        filenames_late = []
+
         densities_F3 = []
         densities_A12 = []
         densities_F3_early_apo = []
@@ -30,8 +33,8 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
             
             for TTT, TIME in enumerate(TIMES):
                 for CCC, COND in enumerate(CONDS):
-                    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
-                    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+                    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment, TIME, COND)
+                    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment, TIME, COND)
                 
                     try: 
                         files = get_file_names(path_save_dir)
@@ -42,9 +45,13 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                     ### GET FULL FILE NAME AND FILE CODE ###
                     files = get_file_names(path_data_dir)
 
-                    channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-                    if "96hr" in path_data_dir:
-                        channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                    if experiment=="2023_11_17_Casp3":
+                        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+                        if "96hr" in path_data_dir:
+                            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                    elif experiment=="2024_03_Casp3":
+                        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+
                     
                     for f, file in enumerate(files):
                         path_data = path_data_dir+file
@@ -298,17 +305,19 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                         _densities_F3_apo = [densities[n] for n in range(len(fates)) if fates[n] == 2]
                         _densities_A12_apo = [densities[n] for n in range(len(fates)) if fates[n] == 3]
                         
-                        filenames.append(file)
-                        densities_F3.append(np.nanmean(_densities_F3))
-                        densities_A12.append(np.nanmean(_densities_A12))
 
                         if apo_stage=="early":
+                            filenames_early.append(file)
+                            densities_F3.append(np.nanmean(_densities_F3))
+                            densities_A12.append(np.nanmean(_densities_A12))
                             densities_F3_early_apo.append(np.nanmean(_densities_F3_apo))
                             densities_A12_early_apo.append(np.nanmean(_densities_A12_apo))
                         elif apo_stage=="mid":
+                            filenames_mid.append(file)
                             densities_F3_mid_apo.append(np.nanmean(_densities_F3_apo))
                             densities_A12_mid_apo.append(np.nanmean(_densities_A12_apo))
                         elif apo_stage=="late":
+                            filenames_late.append(file)
                             densities_F3_late_apo.append(np.nanmean(_densities_F3_apo))
                             densities_A12_late_apo.append(np.nanmean(_densities_A12_apo))
 
@@ -317,8 +326,8 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
 
         colnames = ["file", "F3", "A12", "apo_F3_early", "apo_A12_early", "apo_F3_mid", "apo_A12_mid", "apo_F3_late", "apo_A12_late"]
         full_data = [colnames]
-        for f in range(len(filenames[0:22])):
-            dat = [filenames[f], densities_F3[f], densities_A12[f], densities_F3_early_apo[f], densities_A12_early_apo[f], densities_F3_mid_apo[f], densities_A12_mid_apo[f], densities_F3_late_apo[f], densities_A12_late_apo[f]]
+        for f in range(len(filenames_early)):
+            dat = [filenames_early[f], densities_F3[f], densities_A12[f], densities_F3_early_apo[f], densities_A12_early_apo[f], densities_F3_mid_apo[f], densities_A12_mid_apo[f], densities_F3_late_apo[f], densities_A12_late_apo[f]]
             full_data.append(dat)
 
         # Output CSV file path

@@ -41,8 +41,8 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
             
             for TTT, TIME in enumerate(TIMES):
                 for CCC, COND in enumerate(CONDS):
-                    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/stacks/{}/{}/'.format(TIME, COND)
-                    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/2023_11_17_Casp3/ctobjects/{}/{}/'.format(TIME, COND)
+                    path_data_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/stacks/{}/{}/'.format(experiment, TIME, COND)
+                    path_save_dir='/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/competition/{}/ctobjects/{}/{}/'.format(experiment, TIME, COND)
                 
                     try: 
                         files = get_file_names(path_save_dir)
@@ -53,9 +53,12 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                     ### GET FULL FILE NAME AND FILE CODE ###
                     files = get_file_names(path_data_dir)
 
-                    channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
-                    if "96hr" in path_data_dir:
-                        channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                    if experiment=="2023_11_17_Casp3":
+                        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
+                        if "96hr" in path_data_dir:
+                            channel_names = ["A12", "F3", "Casp3", "BF", "DAPI"]
+                    elif experiment=="2024_03_Casp3":
+                        channel_names = ["F3", "A12", "DAPI", "Casp3", "BF"]
 
                     densities_F3 = []
                     densities_A12 = []

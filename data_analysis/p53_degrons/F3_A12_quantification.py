@@ -12,11 +12,11 @@ plt.rcParams.update({
     "text.usetex": True,
 })
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{siunitx} \sisetup{detect-all} \usepackage{helvet} \usepackage{sansmath} \sansmath'
-mpl.rc('font', size=18) 
-mpl.rc('axes', labelsize=18) 
-mpl.rc('xtick', labelsize=18) 
-mpl.rc('ytick', labelsize=18) 
-mpl.rc('legend', fontsize=18) 
+mpl.rc('font', size=22) 
+mpl.rc('axes', labelsize=22) 
+mpl.rc('xtick', labelsize=22) 
+mpl.rc('ytick', labelsize=22) 
+mpl.rc('legend', fontsize=20) 
 
 F3_all = [[] for z in range(10)]
 F3_F3 = [[] for z in range(10)]
@@ -48,7 +48,7 @@ p53_A12_0z = calibA12["b0z"]
 
 for C, COND in enumerate(CONDS):
     path_data_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
-    path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/{}/".format(COND)
+    path_save_dir="/home/pablo/Desktop/PhD/projects/Data/gastruloids/joshi/p53_analysis/segobjects/2025_09_09_OsTIRMosaic_p53Timecourse/test/{}/".format(COND)
         
     check_or_create_dir(path_save_dir)
 
@@ -114,7 +114,7 @@ for C, COND in enumerate(CONDS):
             channels=chans
         )
 
-        CT_F3.load()
+        CT_F3.run()
 
         ch = channel_names.index("A12")
         batch_args = {
@@ -148,7 +148,7 @@ for C, COND in enumerate(CONDS):
             channels=chans
         )
 
-        CT_A12.load()
+        CT_A12.run()
         zs.append(CT_A12.hyperstack.shape[1])
         
         ch_F3 = channel_names.index("F3")
@@ -198,7 +198,7 @@ for z in range(zs[-1]):
     ax.set_yscale("log")
     ax.set_xscale("log")
     ax.spines[['right', 'top']].set_visible(False)
-    plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/corrected_z{}.svg".format(z))
+    # plt.savefig("/home/pablo/Desktop/PhD/projects/GastruloidCompetition/results/p53_degrons/clustering/corrected_z{}.svg".format(z))
     plt.tight_layout()
     plt.show()
 
@@ -300,8 +300,8 @@ for z in range(10):
     plt.figure(figsize=(8, 6))
     plt.scatter(X[:, 0], X[:, 1], c=colors_clustering, edgecolors='k')
     # plt.scatter(cluster_centers[:, 0], cluster_centers[:, 1], marker='X', s=200, linewidths=3, color='red', label='Cluster Centers')
-    plt.xlabel('log(emiRFG)')
-    plt.ylabel('log(mCherry)')
+    plt.xlabel('log(H2B-emiRFG)')
+    plt.ylabel('log(H2B-mCherry)')
     plt.tight_layout()
 
     # Custom legend handles
@@ -310,7 +310,7 @@ for z in range(10):
             markerfacecolor=(0.8, 0.0, 0.8, 0.7), markersize=10),
         Line2D([0], [0], marker="o", color="w", label="F3",
             markerfacecolor=(0.0, 0.8, 0.0, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="spillover cells",
+        Line2D([0], [0], marker="o", color="w", label="discarded cells",
             markerfacecolor=(0.2, 0.2, 0.2, 1.0), markersize=10),
     ]
     plt.legend(handles=legend_elements, loc="best", frameon=True)
@@ -319,8 +319,8 @@ for z in range(10):
 
     plt.figure(figsize=(8, 6))
     plt.scatter(data1, data2, c=colors_clustering, edgecolors='k')
-    plt.xlabel('emiRFP')
-    plt.ylabel('mCherry')
+    plt.xlabel('H2B-emiRFP')
+    plt.ylabel('H2B-mCherry')
     plt.tight_layout()
 
     # Custom legend handles
@@ -329,7 +329,7 @@ for z in range(10):
             markerfacecolor=(0.8, 0.0, 0.8, 0.7), markersize=10),
         Line2D([0], [0], marker="o", color="w", label="F3",
             markerfacecolor=(0.0, 0.8, 0.0, 0.7), markersize=10),
-        Line2D([0], [0], marker="o", color="w", label="spillover cells",
+        Line2D([0], [0], marker="o", color="w", label="discarded cells",
             markerfacecolor=(0.2, 0.2, 0.2, 1.0), markersize=10),
     ]
     plt.legend(handles=legend_elements, loc="best", frameon=True)

@@ -39,7 +39,7 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                 ch_Casp3 = channel_names.index("Casp3")
                 ch_DAPI = channel_names.index("DAPI")
             
-                chans = fill_channels("Casp3", channel_names)  
+                chans = fill_channels(channel=ch_Casp3, channel_names=channel_names)  
                 batch_args = {
                     'name_format':"ch"+str(ch_Casp3)+"_{}_"+apo_stage,
                     'extension':".tif",

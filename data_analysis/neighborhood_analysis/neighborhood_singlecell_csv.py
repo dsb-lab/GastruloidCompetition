@@ -273,7 +273,6 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                     centers = np.array(centers)
                     fates = np.array(fates)
 
-
                     ### NEIGHBORHOOD COMPUTATION 
                     from sklearn.neighbors import NearestNeighbors
                     nbrs = NearestNeighbors(n_neighbors=number_of_neighs+1, algorithm='ball_tree').fit(centers)
@@ -373,7 +372,11 @@ for experiment in ["2023_11_17_Casp3", "2024_03_Casp3"]:
                             "A12",
                             "F3",
                             "early apo F3",
-                            "early apo A12"
+                            "early apo A12",
+                            "mid apo F3",
+                            "mid apo A12",
+                            "late apo F3",
+                            "late apo A12"
                         ]
                     )
 

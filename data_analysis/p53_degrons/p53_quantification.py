@@ -213,7 +213,6 @@ for C, COND in enumerate(CONDS):
             Ccorr_vals = correct_cell_pixels(CT_F3, mask, z, ch_F3, ch_p53, p53_F3_s_global, p53_F3_0z)
             f3.append(float(np.mean(Ccorr_vals)))
             p53_F3[z].append(float(np.mean(Ccorr_vals)))
-            # f3.append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
             
         Mz_list = build_union_masks([CT_A12])
         p53_A12_0z = estimate_b0z_for_file(CT_A12, Mz_list, ch_A12, ch_p53, p53_A12_s_global)
@@ -227,7 +226,6 @@ for C, COND in enumerate(CONDS):
             a12.append(float(np.mean(Ccorr_vals)))
             p53_A12[z].append(float(np.mean(Ccorr_vals)))
 
-            # a12.append(np.mean(CT_A12.hyperstack[0,z,ch_p53,:,:][mask[:,1], mask[:,0]]))
         F3[-1].append(f3)
         A12[-1].append(a12)    
 
